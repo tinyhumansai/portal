@@ -158,7 +158,7 @@ jobs:
           git push origin "${RELEASE_TAG}"
 
   native-bundles:
-    name: Rust module bundle (${{ matrix.id }})
+    name: CLI package (${{ matrix.id }})
     needs: prepare
     strategy:
       fail-fast: false
@@ -221,66 +221,26 @@ jobs:
             exit 1
           fi
 
-      - name: Build installable module
-        run: cargo build --locked --release --lib
+      - name: Build the release binary
+        run: cargo build --locked --release --bin portal
 
-      - name: Verify Unix module through TinyBus loader
+      - name: Verify the Unix binary runs
         if: ${{ runner.os != 'Windows' }}
         shell: bash
-        env:
-          CRATE_NAME: ${{ needs.prepare.outputs.crate_name }}
         run: |
           set -euo pipefail
-          library_name="${CRATE_NAME//-/_}"
-          case "$RUNNER_OS" in
-            Linux) module="target/release/lib${library_name}.so" ;;
-            macOS) module="target/release/lib${library_name}.dylib" ;;
-            *) echo "unsupported Unix runner: ${RUNNER_OS}" >&2; exit 1 ;;
-          esac
-          cargo run --locked --example verify_module -- "$module"
+          ./target/release/portal --version
+          ./target/release/portal catalog > /dev/null
 
-      - name: Verify Windows module through TinyBus loader
+      - name: Verify the Windows binary runs
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
-        env:
-          CRATE_NAME: ${{ needs.prepare.outputs.crate_name }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $libraryName = $env:CRATE_NAME.Replace('-', '_')
-          $module = "target/release/$libraryName.dll"
-          $verifyRoot = Join-Path $env:RUNNER_TEMP 'rust-template-module-verify'
-          New-Item -ItemType Directory -Force $verifyRoot | Out-Null
+          ./target/release/portal.exe --version
+          ./target/release/portal.exe catalog | Out-Null
 
-          $identity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
-          $security = [System.Security.AccessControl.DirectorySecurity]::new()
-          $security.SetOwner($identity.User)
-          $security.SetAccessRuleProtection($true, $false)
-          $rights = [System.Security.AccessControl.FileSystemRights]::FullControl
-          $inheritance = [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit'
-          $propagation = [System.Security.AccessControl.PropagationFlags]::None
-          $access = [System.Security.AccessControl.AccessControlType]::Allow
-          foreach ($sidValue in @(
-            $identity.User.Value,
-            'S-1-5-18',
-            'S-1-5-32-544'
-          )) {
-            $sid = [System.Security.Principal.SecurityIdentifier]::new($sidValue)
-            $rule = [System.Security.AccessControl.FileSystemAccessRule]::new(
-              $sid,
-              $rights,
-              $inheritance,
-              $propagation,
-              $access
-            )
-            [void]$security.AddAccessRule($rule)
-          }
-          Set-Acl -LiteralPath $verifyRoot -AclObject $security
-
-          $verifiedModule = Join-Path $verifyRoot "$libraryName.dll"
-          Copy-Item -LiteralPath $module -Destination $verifiedModule
-          cargo run --locked --example verify_module -- $verifiedModule
-
-      - name: Assemble Unix module package
+      - name: Assemble the Unix package
         if: ${{ runner.os != 'Windows' }}
         id: unix_package
         shell: bash
@@ -291,32 +251,26 @@ jobs:
         run: |
           set -euo pipefail
 
-          library_name="${CRATE_NAME//-/_}"
-          case "$RUNNER_OS" in
-            Linux) module="target/release/lib${library_name}.so" ;;
-            macOS) module="target/release/lib${library_name}.dylib" ;;
-            *) echo "unsupported Unix runner: ${RUNNER_OS}" >&2; exit 1 ;;
-          esac
-          if [[ ! -f "$module" ]]; then
-            echo "module artifact is missing: ${module}" >&2
+          binary="target/release/portal"
+          if [[ ! -f "$binary" ]]; then
+            echo "binary artifact is missing: ${binary}" >&2
             exit 1
           fi
 
           package_name="${CRATE_NAME}-${VERSION}-${BUNDLE_ID}"
           package_root="dist/${package_name}"
-          mkdir -p "$package_root"
-          install -m 755 "$module" "$package_root/"
-          install -m 644 LICENSE MODULE.md "$package_root/"
+          mkdir -p "$package_root/skills/portal"
+          install -m 755 "$binary" "$package_root/"
+          install -m 644 LICENSE README.md "$package_root/"
+          install -m 644 skills/portal/SKILL.md "$package_root/skills/portal/"
 
-          module_name="$(basename "$module")"
-          module_hash="$(shasum -a 256 "$package_root/$module_name" | awk '{print $1}')"
-          printf '"%s" = "%s"\n' "$module_name" "$module_hash" \
-            > "$package_root/modules.toml"
+          binary_hash="$(shasum -a 256 "$package_root/portal" | awk '{print $1}')"
+          printf '%s  portal\n' "$binary_hash" > "$package_root/SHA256SUMS"
 
           tar -C "$package_root" -czf "dist/${package_name}.tar.gz" .
           echo "archive=dist/${package_name}.tar.gz" >> "$GITHUB_OUTPUT"
 
-      - name: Assemble Windows module package
+      - name: Assemble the Windows package
         if: ${{ runner.os == 'Windows' }}
         id: windows_package
         shell: pwsh
@@ -327,23 +281,22 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
 
-          $libraryName = $env:CRATE_NAME.Replace('-', '_')
-          $module = "target/release/$libraryName.dll"
-          if (-not (Test-Path -LiteralPath $module -PathType Leaf)) {
-            throw "module artifact is missing: $module"
+          $binary = 'target/release/portal.exe'
+          if (-not (Test-Path -LiteralPath $binary -PathType Leaf)) {
+            throw "binary artifact is missing: $binary"
           }
 
           $packageName = "$env:CRATE_NAME-$env:VERSION-$env:BUNDLE_ID"
           $packageRoot = "dist/$packageName"
-          New-Item -ItemType Directory -Force $packageRoot | Out-Null
-          Copy-Item -LiteralPath $module, 'LICENSE', 'MODULE.md' -Destination $packageRoot
+          New-Item -ItemType Directory -Force "$packageRoot/skills/portal" | Out-Null
+          Copy-Item -LiteralPath $binary, 'LICENSE', 'README.md' -Destination $packageRoot
+          Copy-Item -LiteralPath 'skills/portal/SKILL.md' -Destination "$packageRoot/skills/portal"
 
-          $moduleName = Split-Path -Leaf $module
-          $hash = (Get-FileHash -LiteralPath "$packageRoot/$moduleName" -Algorithm SHA256).Hash.ToLowerInvariant()
+          $hash = (Get-FileHash -LiteralPath "$packageRoot/portal.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
           $utf8 = [System.Text.UTF8Encoding]::new($false)
           [System.IO.File]::WriteAllText(
-            "$packageRoot/modules.toml",
-            ('"{0}" = "{1}"' -f $moduleName, $hash) + [Environment]::NewLine,
+            "$packageRoot/SHA256SUMS",
+            ('{0}  portal.exe' -f $hash) + [Environment]::NewLine,
             $utf8
           )
 
@@ -351,7 +304,7 @@ jobs:
           Compress-Archive -Path "$packageRoot/*" -DestinationPath $archive
           "archive=$archive" >> $env:GITHUB_OUTPUT
 
-      - name: Upload Unix package
+      - name: Upload the Unix package
         if: ${{ runner.os != 'Windows' }}
         uses: actions/upload-artifact@v4
         with:
@@ -359,7 +312,7 @@ jobs:
           path: ${{ steps.unix_package.outputs.archive }}
           if-no-files-found: error
 
-      - name: Upload Windows package
+      - name: Upload the Windows package
         if: ${{ runner.os == 'Windows' }}
         uses: actions/upload-artifact@v4
         with:
@@ -368,7 +321,7 @@ jobs:
           if-no-files-found: error
 
   distro-bundles:
-    name: Rust module bundle (${{ matrix.id }})
+    name: CLI package (${{ matrix.id }})
     needs: prepare
     strategy:
       fail-fast: false
@@ -429,22 +382,16 @@ jobs:
             exit 1
           fi
 
-      - name: Build installable module
-        run: cargo build --locked --release --lib
+      - name: Build the release binary
+        run: cargo build --locked --release --bin portal
 
-      - name: Verify module through TinyBus loader
-        env:
-          CRATE_NAME: ${{ needs.prepare.outputs.crate_name }}
+      - name: Verify the binary runs
         run: |
           set -euo pipefail
-          library_name="${CRATE_NAME//-/_}"
-          verify_root="/opt/${CRATE_NAME}-module-verify"
-          install -d -m 700 "$verify_root"
-          install -m 755 "target/release/lib${library_name}.so" "$verify_root/"
-          cargo run --locked --example verify_module -- \
-            "$verify_root/lib${library_name}.so"
+          ./target/release/portal --version
+          ./target/release/portal catalog > /dev/null
 
-      - name: Assemble distribution module package
+      - name: Assemble the distribution package
         id: package
         env:
           BUNDLE_ID: ${{ matrix.id }}
@@ -453,28 +400,26 @@ jobs:
         run: |
           set -euo pipefail
 
-          library_name="${CRATE_NAME//-/_}"
-          module="target/release/lib${library_name}.so"
-          if [[ ! -f "$module" ]]; then
-            echo "module artifact is missing: ${module}" >&2
+          binary="target/release/portal"
+          if [[ ! -f "$binary" ]]; then
+            echo "binary artifact is missing: ${binary}" >&2
             exit 1
           fi
 
           package_name="${CRATE_NAME}-${VERSION}-${BUNDLE_ID}"
           package_root="dist/${package_name}"
-          mkdir -p "$package_root"
-          install -m 755 "$module" "$package_root/"
-          install -m 644 LICENSE MODULE.md "$package_root/"
+          mkdir -p "$package_root/skills/portal"
+          install -m 755 "$binary" "$package_root/"
+          install -m 644 LICENSE README.md "$package_root/"
+          install -m 644 skills/portal/SKILL.md "$package_root/skills/portal/"
 
-          module_name="$(basename "$module")"
-          module_hash="$(sha256sum "$package_root/$module_name" | awk '{print $1}')"
-          printf '"%s" = "%s"\n' "$module_name" "$module_hash" \
-            > "$package_root/modules.toml"
+          binary_hash="$(sha256sum "$package_root/portal" | awk '{print $1}')"
+          printf '%s  portal\n' "$binary_hash" > "$package_root/SHA256SUMS"
 
           tar -C "$package_root" -czf "dist/${package_name}.tar.gz" .
           echo "archive=dist/${package_name}.tar.gz" >> "$GITHUB_OUTPUT"
 
-      - name: Upload distribution package
+      - name: Upload the distribution package
         uses: actions/upload-artifact@v4
         with:
           name: ${{ needs.prepare.outputs.crate_name }}-${{ matrix.id }}
@@ -505,27 +450,23 @@ jobs:
           path: release-assets
           merge-multiple: true
 
-      - name: Create release checksum manifest with TinyBus
+      - name: Create the release checksum manifest
         shell: bash
         run: |
           set -euo pipefail
           shopt -s nullglob
           assets=(release-assets/*.tar.gz release-assets/*.zip)
           if [[ ${#assets[@]} -ne 16 ]]; then
-            echo "expected 16 module archives, found ${#assets[@]}" >&2
+            echo "expected 16 platform archives, found ${#assets[@]}" >&2
             exit 1
           fi
 
-          checksum_args=()
-          for asset in "${assets[@]}"; do
-            checksum_args+=(--path "$asset")
-          done
-          cargo run --manifest-path vendor/tinybus/Cargo.toml --locked \
-            --package tinybus --all-features --bin tinybus -- \
-            modules checksum "${checksum_args[@]}" \
-            --output release-assets/checksum.toml
+          (
+            cd release-assets
+            sha256sum *.tar.gz *.zip > SHA256SUMS
+          )
 
-      - name: Create immutable release with module packages
+      - name: Create the immutable release
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
@@ -542,9 +483,10 @@ jobs:
               --generate-notes
           fi
 
-      - name: Verify the published module through TinyBus
+      - name: Verify the published package downloads and runs
         shell: bash
         env:
+          GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
           REPOSITORY: ${{ github.repository }}
           CRATE_NAME: ${{ needs.prepare.outputs.crate_name }}
@@ -552,18 +494,15 @@ jobs:
         run: |
           set -euo pipefail
           archive="${CRATE_NAME}-${VERSION}-ubuntu-24.04-x86_64.tar.gz"
-          release_url="https://github.com/${REPOSITORY}/releases/tag/${RELEASE_TAG}"
-          sha256="$(
-            sed -n "s/^\"${archive}\" = \"\([0-9a-f]\{64\}\)\"$/\1/p" \
-              release-assets/checksum.toml
-          )"
-          if [[ -z "$sha256" ]]; then
-            echo "checksum missing for ${archive}" >&2
-            exit 1
-          fi
+          workdir="$(mktemp -d)"
+          gh release download "$RELEASE_TAG" --repo "$REPOSITORY" \
+            --pattern "$archive" --pattern SHA256SUMS --dir "$workdir"
 
-          cargo run --manifest-path vendor/tinybus/Cargo.toml --locked \
-            --package tinybus --all-features --example github_module_host -- \
-            "$release_url" "$archive" "$sha256"
-          cargo run --locked --example verify_github_release -- \
-            "$release_url" "$archive" "$sha256"
+          (
+            cd "$workdir"
+            grep " ${archive}\$" SHA256SUMS | sha256sum --check --strict
+            tar -xzf "$archive"
+            ./portal --version
+            ./portal catalog > /dev/null
+            test -f skills/portal/SKILL.md
+          )

@@ -28,10 +28,12 @@ docs/
 Complex modules also carry a module-level `README.md` inside `src/<module>/`
 covering their design, public surface, and important constraints.
 
-The current module-release contract is in
-[`specs/tinybus-module-release.md`](specs/tinybus-module-release.md), with its
-implementation sequence in
-[`plans/tinybus-module-release.md`](plans/tinybus-module-release.md).
+The behaviour every surface of Portal is built on is specified in
+[`specs/capability-catalog.md`](specs/capability-catalog.md). Two decisions
+shape it: the catalog is generated from the deployed contract rather than
+hand-written ([ADR 2](adr/0002-generate-the-capability-catalog.md)), and the MCP
+server exposes four tools rather than one per capability
+([ADR 3](adr/0003-four-mcp-tools.md)).
 
 ## Conventions
 
