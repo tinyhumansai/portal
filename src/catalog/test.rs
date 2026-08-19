@@ -181,7 +181,7 @@ fn the_input_schema_names_required_arguments_and_rejects_extras() {
     let schema = web.input_schema();
     assert_eq!(schema["type"], "object");
     assert_eq!(schema["additionalProperties"], false);
-    assert!(schema["properties"]["objective"]["type"] == "string");
+    assert_eq!(schema["properties"]["objective"]["type"], "string");
     let required: Vec<&str> = schema["required"]
         .as_array()
         .expect("required is an array")
