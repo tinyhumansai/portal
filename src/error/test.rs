@@ -71,6 +71,26 @@ fn a_binary_response_points_at_the_output_path_form() {
 }
 
 #[test]
+fn an_unsupported_byte_request_names_the_capability() {
+    let error = Error::UnsupportedByteRequest {
+        capability: "models.speak".to_owned(),
+    };
+    let message = error.to_string();
+    assert!(message.contains("models.speak"));
+    assert!(message.contains("byte transport"));
+}
+
+#[test]
+fn insecure_credentials_names_the_origin() {
+    let error = Error::InsecureCredentials {
+        base_url: "http://example.com".to_owned(),
+    };
+    let message = error.to_string();
+    assert!(message.contains("http://example.com"));
+    assert!(message.contains("https"));
+}
+
+#[test]
 fn json_failures_convert_into_the_json_variant() {
     let failure = serde_json::from_str::<serde_json::Value>("{");
     let error = Error::from(failure.expect_err("truncated json does not parse"));

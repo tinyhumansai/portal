@@ -20,12 +20,16 @@ pub(super) const METHOD_NOT_FOUND: i32 = -32601;
 /// JSON-RPC error code for parameters the method cannot accept.
 pub(super) const INVALID_PARAMS: i32 = -32602;
 
-/// One incoming JSON-RPC message.
+/// One incoming JSON-RPC message, once its envelope has passed
+/// [`envelope_is_valid`].
+///
+/// The request identifier is not carried here: whether the caller sent one
+/// at all (a request) or omitted it (a notification, per the specification)
+/// is a property of the raw message, not of a value that collapses an absent
+/// field and an explicit `null` into the same `None`. The caller extracts and
+/// validates `id` from the raw [`Value`] before deserializing into this type.
 #[derive(Debug, Clone, Deserialize)]
 pub(super) struct Incoming {
-    /// The request identifier, absent on a notification.
-    #[serde(default)]
-    pub(super) id: Option<Value>,
     /// The method being called.
     pub(super) method: String,
     /// The method's parameters, defaulting to null.
@@ -33,11 +37,22 @@ pub(super) struct Incoming {
     pub(super) params: Value,
 }
 
-impl Incoming {
-    /// Whether the message is a notification, which must not be answered.
-    #[must_use]
-    pub(super) fn is_notification(&self) -> bool {
-        self.id.is_none()
+/// Whether `message`'s JSON-RPC envelope is well-formed.
+///
+/// `jsonrpc` must be exactly `"2.0"`. `id`, when the key is present at all,
+/// must be a non-null string or integer: the specification permits `null`
+/// in base JSON-RPC but MCP forbids it, and an object, array, or boolean id
+/// is never valid. Pass the raw `message.get("id")` so an absent key (a
+/// notification) is distinguished from an explicit `null` (invalid).
+#[must_use]
+pub(super) fn envelope_is_valid(message: &Value, id: Option<&Value>) -> bool {
+    if message.get("jsonrpc").and_then(Value::as_str) != Some("2.0") {
+        return false;
+    }
+    match id {
+        None | Some(Value::String(_)) => true,
+        Some(Value::Number(number)) => number.is_i64() || number.is_u64(),
+        Some(_) => false,
     }
 }
 

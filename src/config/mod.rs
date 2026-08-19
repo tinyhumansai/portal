@@ -107,16 +107,20 @@ impl Settings {
     }
 
     /// Replace the API key.
+    ///
+    /// A blank key is treated as absent, matching [`Settings::from_lookup`].
     #[must_use]
     pub fn with_api_key(mut self, api_key: Option<String>) -> Self {
-        self.api_key = api_key;
+        self.api_key = clean_credential(api_key);
         self
     }
 
     /// Replace the bearer token.
+    ///
+    /// A blank token is treated as absent, matching [`Settings::from_lookup`].
     #[must_use]
     pub fn with_token(mut self, token: Option<String>) -> Self {
-        self.token = token;
+        self.token = clean_credential(token);
         self
     }
 
@@ -157,6 +161,13 @@ impl Settings {
             (false, false) => "none",
         }
     }
+}
+
+/// Trim a credential and treat a blank one as absent.
+fn clean_credential(value: Option<String>) -> Option<String> {
+    value
+        .map(|value| value.trim().to_owned())
+        .filter(|value| !value.is_empty())
 }
 
 #[cfg(test)]

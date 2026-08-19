@@ -101,6 +101,32 @@ fn sends_a_free_form_body_without_nesting_it() {
 }
 
 #[test]
+fn a_real_body_field_named_body_stays_one_field_among_several() {
+    // `feedback.create` declares a string field genuinely called `body`. It
+    // must not be mistaken for the synthetic free-form body parameter and
+    // swallow the whole request, dropping `type`, `title`, and `product`.
+    let request = plan(
+        capability("feedback.create"),
+        &json!({
+            "type": "bug",
+            "title": "portal drops arguments",
+            "body": "the request only carried one field",
+            "product": "portal",
+        }),
+    )
+    .expect("plan");
+    assert_eq!(
+        request.body,
+        Some(json!({
+            "type": "bug",
+            "title": "portal drops arguments",
+            "body": "the request only carried one field",
+            "product": "portal",
+        }))
+    );
+}
+
+#[test]
 fn a_get_capability_sends_no_body() {
     let request = plan(capability("models.list"), &json!({})).expect("plan");
     assert_eq!(request.body, None);

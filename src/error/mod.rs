@@ -82,6 +82,36 @@ pub enum Error {
         capability: String,
     },
 
+    /// A byte-returning capability was invoked with query or body arguments.
+    ///
+    /// The byte transport only sends the path: query and body arguments would
+    /// be silently dropped rather than reaching the backend, so the call is
+    /// refused locally instead of returning an incomplete or misleading
+    /// response.
+    #[error(
+        "capability {capability} needs query or body arguments that the byte transport cannot \
+         send; call it without those arguments or use `Portal::invoke` if it returns json"
+    )]
+    UnsupportedByteRequest {
+        /// The capability that was invoked.
+        capability: String,
+    },
+
+    /// Credentials are configured but the backend origin is cleartext HTTP.
+    ///
+    /// `x-api-key` and `Authorization` are sent on every request once a
+    /// credential is configured, so a non-loopback `http://` origin would put
+    /// them on the wire unencrypted. Use `https://`, or point at a loopback
+    /// origin for local development.
+    #[error(
+        "refusing to send credentials to {base_url} over unencrypted http; use https, or omit \
+         credentials for local development against localhost or 127.0.0.1"
+    )]
+    InsecureCredentials {
+        /// The configured backend origin.
+        base_url: String,
+    },
+
     /// The backend call failed, or the SDK refused to send it.
     #[error("backend call failed: {0}")]
     Backend(#[from] tinyhumans_sdk::Error),

@@ -95,6 +95,15 @@ pub fn plan(capability: &'static Capability, arguments: &Value) -> Result<Reques
     let mut body = Map::new();
     let mut form = Vec::new();
     let mut files = Vec::new();
+    // A capability the contract does not describe carries its whole body under
+    // a synthetic `Object`-kind `body` parameter, which replaces the body map
+    // rather than nesting under a `body` key. The `Object` kind is what makes
+    // that safe: `feedback.create` and friends declare a real *string* field
+    // called `body`, which must stay one field among several.
+    //
+    // Recorded here and applied after the loop rather than returned early, so
+    // every remaining parameter is still validated.
+    let mut free_form_body = None;
 
     for param in capability.params {
         let Some(value) =
@@ -124,18 +133,8 @@ pub fn plan(capability: &'static Capability, arguments: &Value) -> Result<Reques
                     files.push((param.wire_name, PathBuf::from(scalar(value))));
                 }
                 (BodyKind::Multipart, _) => form.push((param.wire_name, scalar(value))),
-                // A capability whose whole body is free-form carries it under
-                // the synthetic `body` parameter; send that object as the body
-                // rather than nesting it one level deeper.
-                (_, _) if param.name == "body" && param.wire_name == "body" => {
-                    return Ok(Request {
-                        capability,
-                        path,
-                        query,
-                        body: Some(value.clone()),
-                        form,
-                        files,
-                    });
+                (_, ParamKind::Object) if param.name == "body" && param.wire_name == "body" => {
+                    free_form_body = Some(value.clone());
                 }
                 (_, _) => {
                     body.insert(param.wire_name.to_owned(), value.clone());
@@ -144,9 +143,10 @@ pub fn plan(capability: &'static Capability, arguments: &Value) -> Result<Reques
         }
     }
 
-    let body = match capability.body {
-        BodyKind::None | BodyKind::Multipart => None,
-        BodyKind::Json => Some(Value::Object(body)),
+    let body = match (capability.body, free_form_body) {
+        (BodyKind::None | BodyKind::Multipart, _) => None,
+        (BodyKind::Json, Some(free_form)) => Some(free_form),
+        (BodyKind::Json, None) => Some(Value::Object(body)),
     };
     Ok(Request {
         capability,

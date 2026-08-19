@@ -229,6 +229,59 @@ fn refuses_an_unknown_capability() {
     }
 }
 
+#[tokio::test]
+async fn refuses_credentials_over_cleartext_http_to_a_non_loopback_host() {
+    let portal = Portal::new(
+        Settings::new("http://backend.example.com").with_api_key(Some("th-test-key".into())),
+    );
+    let error = portal
+        .invoke("credits.balance", &Value::Null)
+        .await
+        .expect_err("http to a non-loopback host is refused");
+    match error {
+        Error::InsecureCredentials { base_url } => {
+            assert_eq!(base_url, "http://backend.example.com");
+        }
+        other => panic!("unexpected error: {other}"),
+    }
+}
+
+#[tokio::test]
+async fn allows_credentials_over_cleartext_http_to_localhost() {
+    let server = MockServer::start().await;
+    // `server.uri()` is already a loopback origin (`http://127.0.0.1:<port>`);
+    // `portal(&server)` carries a credential, and every mocked test above
+    // already exercises this path. This test additionally covers the
+    // `localhost` hostname spelling specifically.
+    Mock::given(method("GET"))
+        .and(path("/payments/credits/balance"))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_json(json!({ "success": true, "data": 5 })),
+        )
+        .mount(&server)
+        .await;
+    let base_url = server.uri().replacen("127.0.0.1", "localhost", 1);
+    let portal = Portal::new(Settings::new(base_url).with_api_key(Some("th-test-key".into())));
+    let result = portal
+        .invoke("credits.balance", &Value::Null)
+        .await
+        .expect("localhost is exempt from the transport-security check");
+    assert_eq!(result, json!(5));
+}
+
+#[tokio::test]
+async fn refuses_a_byte_capability_that_needs_a_body_the_transport_cannot_send() {
+    let server = MockServer::start().await;
+    let error = portal(&server)
+        .invoke_bytes("models.speak", &json!({ "text": "hello" }))
+        .await
+        .expect_err("the byte transport cannot send a body");
+    match error {
+        Error::UnsupportedByteRequest { capability } => assert_eq!(capability, "models.speak"),
+        other => panic!("unexpected error: {other}"),
+    }
+}
+
 #[test]
 fn exposes_its_settings_and_sdk_without_leaking_credentials() {
     let portal =

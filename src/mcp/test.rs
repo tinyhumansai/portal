@@ -131,6 +131,81 @@ async fn a_message_without_a_method_is_an_invalid_request() {
 }
 
 #[tokio::test]
+async fn a_missing_jsonrpc_version_is_an_invalid_request() {
+    let response: Value = serde_json::from_str(
+        &server("http://localhost:1")
+            .handle(r#"{"id":7,"method":"ping"}"#)
+            .await
+            .expect("an invalid request is answered"),
+    )
+    .expect("the error is json");
+    assert_eq!(response["error"]["code"], -32600);
+    assert_eq!(response["id"], 7);
+}
+
+#[tokio::test]
+async fn a_wrong_jsonrpc_version_is_an_invalid_request() {
+    let response: Value = serde_json::from_str(
+        &server("http://localhost:1")
+            .handle(r#"{"jsonrpc":"1.0","id":8,"method":"ping"}"#)
+            .await
+            .expect("an invalid request is answered"),
+    )
+    .expect("the error is json");
+    assert_eq!(response["error"]["code"], -32600);
+}
+
+#[tokio::test]
+async fn an_explicit_null_id_is_an_invalid_request_not_a_notification() {
+    // The base JSON-RPC 2.0 spec permits a `null` id; MCP does not, and an
+    // implementation that treats it as a notification silently drops a
+    // request the caller expected an answer to.
+    let response = server("http://localhost:1")
+        .handle(r#"{"jsonrpc":"2.0","id":null,"method":"ping"}"#)
+        .await
+        .expect("a null id is answered, not silently dropped");
+    let response: Value = serde_json::from_str(&response).expect("the error is json");
+    assert_eq!(response["error"]["code"], -32600);
+}
+
+#[tokio::test]
+async fn a_boolean_id_is_an_invalid_request() {
+    let response: Value = serde_json::from_str(
+        &server("http://localhost:1")
+            .handle(r#"{"jsonrpc":"2.0","id":true,"method":"ping"}"#)
+            .await
+            .expect("an invalid request is answered"),
+    )
+    .expect("the error is json");
+    assert_eq!(response["error"]["code"], -32600);
+}
+
+#[tokio::test]
+async fn an_object_id_is_an_invalid_request() {
+    let response: Value = serde_json::from_str(
+        &server("http://localhost:1")
+            .handle(r#"{"jsonrpc":"2.0","id":{},"method":"ping"}"#)
+            .await
+            .expect("an invalid request is answered"),
+    )
+    .expect("the error is json");
+    assert_eq!(response["error"]["code"], -32600);
+}
+
+#[tokio::test]
+async fn a_string_id_is_accepted() {
+    let response: Value = serde_json::from_str(
+        &server("http://localhost:1")
+            .handle(r#"{"jsonrpc":"2.0","id":"req-1","method":"ping"}"#)
+            .await
+            .expect("the request is answered"),
+    )
+    .expect("the result is json");
+    assert_eq!(response["id"], "req-1");
+    assert!(response.get("error").is_none());
+}
+
+#[tokio::test]
 async fn an_unknown_method_is_reported() {
     let response = ask(
         &server("http://localhost:1"),
@@ -312,7 +387,9 @@ async fn invoke_saves_bytes_to_a_file_when_asked() {
         .mount(&backend)
         .await;
 
-    let destination = std::env::temp_dir().join("portal-mcp-download.pdf");
+    // `save_to` is confined to the working directory, so a relative path is
+    // used rather than an arbitrary absolute one.
+    let destination = std::path::PathBuf::from("portal-mcp-download-test.pdf");
     let response = ask(
         &server(&backend.uri()),
         &call(
@@ -350,13 +427,48 @@ async fn invoke_reports_a_download_that_cannot_be_written() {
             &json!({
                 "capability": "files.download",
                 "arguments": { "file_id": "f1" },
-                "save_to": "/nonexistent-directory/portal.pdf",
+                "save_to": "portal-mcp-nonexistent-directory/portal.pdf",
             }),
         ),
     )
     .await;
     assert_eq!(response["result"]["isError"], true);
     assert!(text(&response).contains("could not write"));
+}
+
+#[tokio::test]
+async fn invoke_rejects_a_save_to_path_outside_the_working_directory() {
+    let backend = MockServer::start().await;
+
+    let response = ask(
+        &server(&backend.uri()),
+        &call(
+            "portal_invoke",
+            &json!({
+                "capability": "files.download",
+                "arguments": { "file_id": "f1" },
+                "save_to": "/etc/portal-mcp-test.pdf",
+            }),
+        ),
+    )
+    .await;
+    assert_eq!(response["result"]["isError"], true);
+    assert!(text(&response).contains("relative path"));
+
+    let response = ask(
+        &server(&backend.uri()),
+        &call(
+            "portal_invoke",
+            &json!({
+                "capability": "files.download",
+                "arguments": { "file_id": "f1" },
+                "save_to": "../portal-mcp-test.pdf",
+            }),
+        ),
+    )
+    .await;
+    assert_eq!(response["result"]["isError"], true);
+    assert!(text(&response).contains(".."));
 }
 
 #[tokio::test]
@@ -375,7 +487,7 @@ async fn invoke_reports_a_failed_download() {
             &json!({
                 "capability": "files.download",
                 "arguments": { "file_id": "f1" },
-                "save_to": std::env::temp_dir().join("portal-missing.pdf").to_string_lossy(),
+                "save_to": "portal-mcp-missing-download.pdf",
             }),
         ),
     )

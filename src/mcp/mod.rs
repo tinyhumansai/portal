@@ -28,6 +28,8 @@ mod types;
 
 pub use types::PROTOCOL_VERSION;
 
+use std::path::{Component, Path, PathBuf};
+
 use serde_json::{Value, json};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
@@ -90,18 +92,30 @@ impl Server {
                 )));
             }
         };
-        let id = message.get("id").cloned().unwrap_or(Value::Null);
+        // An absent `id` key is a notification; an explicit `null`, an
+        // object, an array, or a boolean is not a valid id at all. `raw_id`
+        // keeps that distinction; `echo_id` is only ever used to shape an
+        // error response and defaults to `null` when there is nothing valid
+        // to echo, per JSON-RPC convention.
+        let raw_id = message.get("id").cloned();
+        let echo_id = raw_id.clone().unwrap_or(Value::Null);
+        if !types::envelope_is_valid(&message, raw_id.as_ref()) {
+            return Some(render(&failure(
+                &echo_id,
+                INVALID_REQUEST,
+                "a jsonrpc request needs \"jsonrpc\": \"2.0\" and, if present, a non-null \
+                 string or integer id",
+            )));
+        }
         let Ok(request) = serde_json::from_value::<Incoming>(message) else {
             return Some(render(&failure(
-                &id,
+                &echo_id,
                 INVALID_REQUEST,
                 "a jsonrpc request needs a method",
             )));
         };
-        if request.is_notification() {
-            return None;
-        }
-        Some(render(&self.respond(&id, &request).await))
+        raw_id.as_ref()?;
+        Some(render(&self.respond(&echo_id, &request).await))
     }
 
     /// Dispatch one request to its method.
@@ -165,15 +179,20 @@ impl Server {
         let save_to = arguments.get("save_to").and_then(Value::as_str);
 
         if let Some(destination) = save_to {
+            let destination = match confine_to_working_directory(destination) {
+                Ok(path) => path,
+                Err(message) => return tool_result(message, true),
+            };
             return match self.portal.invoke_bytes(id, &call_arguments).await {
-                Ok(bytes) => match tokio::fs::write(destination, &bytes).await {
+                Ok(bytes) => match tokio::fs::write(&destination, &bytes).await {
                     Ok(()) => tool_result(
-                        format!("wrote {} bytes to {destination}", bytes.len()),
+                        format!("wrote {} bytes to {}", bytes.len(), destination.display()),
                         false,
                     ),
-                    Err(error) => {
-                        tool_result(format!("could not write {destination}: {error}"), true)
-                    }
+                    Err(error) => tool_result(
+                        format!("could not write {}: {error}", destination.display()),
+                        true,
+                    ),
                 },
                 Err(error) => tool_result(error.to_string(), true),
             };
@@ -183,6 +202,50 @@ impl Server {
             Err(error) => tool_result(error.to_string(), true),
         }
     }
+}
+
+/// Confine an MCP-supplied `save_to` path beneath the process's current
+/// working directory.
+///
+/// `save_to` comes from whatever is driving the MCP tool call — potentially a
+/// model acting on prompt-injected content — so it is never trusted as an
+/// arbitrary filesystem path. An absolute path, a path that traverses out of
+/// the working directory with `..`, or one that resolves through a symlink to
+/// outside it is refused before any network call is made.
+///
+/// # Errors
+///
+/// Returns a human-readable rejection message, suitable for a tool error
+/// result, when `save_to` is unsafe.
+fn confine_to_working_directory(save_to: &str) -> std::result::Result<PathBuf, String> {
+    let requested = Path::new(save_to);
+    if requested.is_absolute() {
+        return Err(format!("save_to must be a relative path, got {save_to}"));
+    }
+    if requested
+        .components()
+        .any(|component| matches!(component, Component::ParentDir))
+    {
+        return Err(format!("save_to may not contain .. segments: {save_to}"));
+    }
+    let working_directory = std::env::current_dir()
+        .map_err(|error| format!("could not resolve the working directory: {error}"))?;
+    let destination = working_directory.join(requested);
+    // A relative path with no `..` segment can still escape the working
+    // directory if a path component is a symlink to somewhere else. Compare
+    // canonical forms when both resolve. A destination whose parent does not
+    // exist yet has nothing to canonicalize against; the write that follows
+    // fails on its own in that case, so it is not treated as unsafe here.
+    let canonical_root = working_directory.canonicalize().ok();
+    let canonical_parent = destination
+        .parent()
+        .and_then(|parent| parent.canonicalize().ok());
+    if let (Some(root), Some(parent)) = (canonical_root, canonical_parent)
+        && !parent.starts_with(&root)
+    {
+        return Err(format!("save_to escapes the working directory: {save_to}"));
+    }
+    Ok(destination)
 }
 
 /// The handshake response, naming the tools an agent should reach for first.

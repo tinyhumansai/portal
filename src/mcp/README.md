@@ -34,4 +34,8 @@ therefore testable by handing it a string.
   requests; a model is meant to read a tool failure and react to it.
 - **Bytes are never inlined.** A byte-returning capability requires `save_to`;
   the tool answers with the path and the length it wrote.
+- **`save_to` is confined to the working directory.** It is model-supplied and
+  therefore untrusted: an absolute path, a `..` segment, or a path that
+  resolves through a symlink out of the working directory is rejected before
+  any network call is made.
 - Credentials are never echoed. `portal_status` reports the credential kind.

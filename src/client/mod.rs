@@ -107,9 +107,10 @@ impl Portal {
     ///
     /// # Errors
     ///
-    /// Returns any error from [`Portal::prepare`], [`Error::Io`] when an upload
-    /// file cannot be read, and [`Error::Backend`] when the backend rejects the
-    /// call or the transport fails.
+    /// Returns any error from [`Portal::prepare`], [`Error::InsecureCredentials`]
+    /// when a credential is configured over a non-loopback `http://` origin,
+    /// [`Error::Io`] when an upload file cannot be read, and [`Error::Backend`]
+    /// when the backend rejects the call or the transport fails.
     pub async fn invoke(&self, id: &str, arguments: &Value) -> Result<Value> {
         let request = self.prepare(id, arguments)?;
         self.send(&request).await
@@ -117,16 +118,26 @@ impl Portal {
 
     /// Invoke a capability whose response is bytes.
     ///
-    /// This is the entry point for downloads and generated audio. Query and
-    /// body arguments are still validated, but only the path is sent.
+    /// This is the entry point for downloads and generated audio. The byte
+    /// transport only sends the path, so a capability that also needs query or
+    /// body arguments is refused locally rather than sending an incomplete
+    /// request.
     ///
     /// # Errors
     ///
     /// Returns [`Error::UnknownCapability`], [`Error::MissingCredentials`],
-    /// argument errors from [`invoke::plan`], or [`Error::Backend`].
+    /// [`Error::InsecureCredentials`], [`Error::UnsupportedByteRequest`] when
+    /// the capability needs query or body arguments, argument errors from
+    /// [`invoke::plan`], or [`Error::Backend`].
     pub async fn invoke_bytes(&self, id: &str, arguments: &Value) -> Result<Vec<u8>> {
         let capability = self.resolve(id)?;
         let request = invoke::plan(capability, arguments)?;
+        if request_carries_unsent_arguments(&request) {
+            return Err(Error::UnsupportedByteRequest {
+                capability: capability.id.to_owned(),
+            });
+        }
+        self.check_transport_security()?;
         Ok(self
             .client
             .raw()
@@ -138,9 +149,11 @@ impl Portal {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Io`] when an upload file cannot be read and
-    /// [`Error::Backend`] when the call fails.
+    /// Returns [`Error::InsecureCredentials`] when a credential is configured
+    /// over a non-loopback `http://` origin, [`Error::Io`] when an upload file
+    /// cannot be read, and [`Error::Backend`] when the call fails.
     pub async fn send(&self, request: &Request) -> Result<Value> {
+        self.check_transport_security()?;
         let capability = request.capability;
         if capability.body == BodyKind::Multipart {
             return self.send_multipart(request).await;
@@ -165,14 +178,16 @@ impl Portal {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Backend`] when the route is not exposed, the backend
-    /// rejects the call, or the transport fails.
+    /// Returns [`Error::InsecureCredentials`] when a credential is configured
+    /// over a non-loopback `http://` origin, [`Error::Backend`] when the route
+    /// is not exposed, the backend rejects the call, or the transport fails.
     pub async fn raw(
         &self,
         method: catalog::Method,
         path: &str,
         body: Option<&Value>,
     ) -> Result<Value> {
+        self.check_transport_security()?;
         Ok(self
             .client
             .raw()
@@ -192,6 +207,29 @@ impl Portal {
             return Err(Error::MissingCredentials);
         }
         Ok(capability)
+    }
+
+    /// Refuse to send a configured credential over cleartext HTTP.
+    ///
+    /// `x-api-key` and `Authorization` are attached to every request once a
+    /// credential is configured, regardless of whether the capability being
+    /// called needs one. A non-loopback `http://` origin would put that
+    /// credential on the wire unencrypted, so the call is refused locally.
+    /// Loopback origins (`localhost`, `127.0.0.1`, `::1`) are exempt to keep
+    /// local development against an unencrypted backend working.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InsecureCredentials`].
+    fn check_transport_security(&self) -> Result<()> {
+        if self.settings.is_authenticated()
+            && is_insecure_credentialed_origin(self.settings.base_url())
+        {
+            return Err(Error::InsecureCredentials {
+                base_url: self.settings.base_url().to_owned(),
+            });
+        }
+        Ok(())
     }
 
     /// Read every declared file and post the request as `multipart/form-data`.
@@ -217,6 +255,37 @@ impl Portal {
             .post_multipart(&request.path, form)
             .await?)
     }
+}
+
+/// Backend origins the transport-security check treats as local development.
+const LOOPBACK_HOSTS: &[&str] = &["localhost", "127.0.0.1", "::1", "[::1]"];
+
+/// Whether `base_url` is cleartext HTTP to a non-loopback host.
+///
+/// A missing or non-`http://` scheme (including `https://` and anything
+/// unrecognized) is not flagged here; only an explicit, non-loopback
+/// `http://` origin is insecure enough to refuse a configured credential.
+fn is_insecure_credentialed_origin(base_url: &str) -> bool {
+    let Some(host_and_rest) = base_url.strip_prefix("http://") else {
+        return false;
+    };
+    !LOOPBACK_HOSTS.iter().any(|host| {
+        host_and_rest == *host
+            || host_and_rest.starts_with(&format!("{host}/"))
+            || host_and_rest.starts_with(&format!("{host}:"))
+    })
+}
+
+/// Whether a planned byte request needs query or body arguments that
+/// [`Portal::invoke_bytes`] cannot send.
+fn request_carries_unsent_arguments(request: &Request) -> bool {
+    let has_query = request.query.iter().any(|(_, value)| value.is_some());
+    let has_body = match &request.body {
+        None => false,
+        Some(Value::Object(map)) => !map.is_empty(),
+        Some(_) => true,
+    };
+    has_query || has_body
 }
 
 #[cfg(test)]

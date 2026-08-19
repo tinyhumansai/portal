@@ -69,6 +69,17 @@ fn builders_replace_each_credential_independently() {
 }
 
 #[test]
+fn builders_treat_a_blank_credential_as_absent() {
+    let settings = Settings::default()
+        .with_api_key(Some("   ".to_owned()))
+        .with_token(Some("\t".to_owned()));
+    assert!(!settings.is_authenticated());
+    assert_eq!(settings.credential_kind(), "none");
+    assert_eq!(settings.api_key(), None);
+    assert_eq!(settings.token(), None);
+}
+
+#[test]
 fn from_env_reads_the_real_process_environment() {
     // Only the default is asserted: the test process must not depend on, or
     // mutate, whatever credentials the developer has exported.

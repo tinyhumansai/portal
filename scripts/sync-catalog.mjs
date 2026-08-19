@@ -74,14 +74,14 @@ async function main() {
 // committed snapshot, or the snapshot itself.
 async function loadSpec() {
   if (specPath) {
-    return JSON.parse(await readFile(resolve(specPath), "utf8"));
+    return validateSpec(JSON.parse(await readFile(resolve(specPath), "utf8")));
   }
   if (fetchSnapshot) {
     const response = await fetch(SPEC_URL);
     if (!response.ok) {
       throw new Error(`GET ${SPEC_URL} returned ${response.status}`);
     }
-    const spec = await response.json();
+    const spec = validateSpec(await response.json());
     await emit(SPEC_PATH, `${JSON.stringify(spec, null, 2)}\n`);
     return spec;
   }
@@ -89,7 +89,26 @@ async function loadSpec() {
   if (snapshot === null) {
     throw new Error(`${SPEC_PATH} is missing; run node scripts/sync-catalog.mjs --fetch`);
   }
-  return JSON.parse(snapshot);
+  return validateSpec(JSON.parse(snapshot));
+}
+
+// Reject a document that is not a usable OpenAPI contract before it is
+// persisted as the committed snapshot or turned into capabilities: an empty
+// or malformed `paths` object would otherwise silently regenerate the
+// catalog down to zero capabilities.
+function validateSpec(spec) {
+  if (
+    !spec ||
+    typeof spec !== "object" ||
+    Array.isArray(spec) ||
+    !spec.paths ||
+    typeof spec.paths !== "object" ||
+    Array.isArray(spec.paths) ||
+    Object.keys(spec.paths).length === 0
+  ) {
+    throw new Error("contract does not contain a non-empty OpenAPI paths object");
+  }
+  return spec;
 }
 
 // The SDK's allowlist is the source of truth for what may be called at all.
