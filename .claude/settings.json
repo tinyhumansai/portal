@@ -20,7 +20,12 @@
       "Bash(gh pr view:*)",
       "Bash(gh pr diff:*)",
       "Bash(gh pr checks:*)",
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(cargo run --bin portal -- catalog:*)",
+      "Bash(cargo run --bin portal -- search:*)",
+      "Bash(cargo run --bin portal -- describe:*)",
+      "Bash(cargo run --bin portal -- skill:*)",
+      "Bash(node scripts/sync-catalog.mjs:*)"
     ],
     "deny": [
       "Read(./.env)",

@@ -1,15 +1,15 @@
 [package]
-name = "rust-template"
+name = "portal"
 version = "0.1.5"
 edition = "2024"
 rust-version = "1.88"
 license = "GPL-3.0-only"
-description = "A production-ready template for installable TinyBus modules."
-repository = "https://github.com/tinyhumansai/rust-template"
-documentation = "https://docs.rs/rust-template"
+description = "One agent-friendly door to every TinyHumans provider, search engine, and model — as a Rust SDK, CLI, MCP server, and Agent Skill."
+repository = "https://github.com/tinyhumansai/portal"
+documentation = "https://docs.rs/portal"
 readme = "README.md"
-keywords = ["tinybus", "module", "plugin", "template"]
-categories = ["development-tools"]
+keywords = ["agent", "mcp", "llm", "search", "sdk"]
+categories = ["api-bindings", "command-line-utilities"]
 publish = false
 # Keep the published package to what a consumer actually needs.
 exclude = [
@@ -23,26 +23,43 @@ exclude = [
 ]
 
 [lib]
-# Keep the ordinary Rust library for tests and downstream reuse while also
-# producing the native module artifact that TinyBus loads at runtime.
-crate-type = ["rlib", "cdylib"]
+name = "portal"
+path = "src/lib.rs"
+
+[[bin]]
+# The `portal` CLI, which also hosts the MCP server (`portal mcp`).
+name = "portal"
+path = "src/bin/portal.rs"
 
 [dependencies]
-# TinyBus defines the message types, interface macro, and frozen module ABI used
-# by the generated integration. Socket and CLI features are unnecessary here.
-tinybus = { path = "vendor/tinybus/crates/tinybus", version = "0.1.0", default-features = false, features = ["macros", "modules"] }
-# The module-side SDK owns the isolated runtime and exports the ABI entrypoints
-# required by TinyBus's dynamic loader.
-tinybus-module = { path = "vendor/tinybus/crates/tinybus-module", version = "0.1.0" }
-# Derive macros for the crate-wide error type in `src/error/mod.rs`. Every
-# dependency entry should carry a comment like this one saying why it is here.
+# The vendored TinyHumans backend client. Portal is a thin, agent-facing facade
+# over it: the SDK owns transport, auth headers, the response envelope, and the
+# public-route allowlist, so none of that is reimplemented here. `socket` is off
+# because Portal's surface is request/response only.
+tinyhumans-sdk = { path = "vendor/sdk", version = "0.1.0", default-features = false }
+# The SDK's request primitive takes a `reqwest::Method` and its multipart
+# uploads take a `reqwest::multipart::Form`, so those two types cross the
+# boundary. No transport features are enabled here: the SDK owns the client,
+# and Cargo unifies this entry with the one it already builds.
+reqwest = { version = "0.12", default-features = false, features = ["multipart"] }
+# Derive macros for the crate-wide error type in `src/error/mod.rs`.
 thiserror = "2"
+# Capability arguments, request bodies, and MCP JSON-RPC framing are all JSON.
+serde_json = "1"
+# Derives for the catalog's serializable views and the MCP wire types.
+serde = { version = "1", features = ["derive"] }
+# The CLI's argument parser. `derive` keeps the command tree next to the types
+# it produces; `wrap_help` keeps `--help` readable in a narrow terminal.
+clap = { version = "4", features = ["derive", "wrap_help"] }
+# Async runtime for the SDK's futures, plus stdin/stdout for the MCP server.
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std", "io-util"] }
 
 [dev-dependencies]
-# Module integration tests exercise the real asynchronous in-memory TinyBus.
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
-# The GitHub release verifier passes an explicit empty module configuration.
-serde_json = "1"
+# Integration tests drive the async public API.
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+# A local HTTP mock so client, CLI, and MCP tests exercise the real transport
+# without a network or a credential. The same crate the vendored SDK tests on.
+wiremock = "0.6"
 
 [features]
 default = []

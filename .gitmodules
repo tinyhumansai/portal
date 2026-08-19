@@ -1,4 +1,4 @@
-[submodule "vendor/tinybus"]
-	path = vendor/tinybus
-	url = https://github.com/tinyhumansai/tinybus
+[submodule "vendor/sdk"]
+	path = vendor/sdk
+	url = https://github.com/tinyhumansai/sdk
 	branch = main

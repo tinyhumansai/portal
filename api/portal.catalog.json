@@ -1,0 +1,5463 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "portal-capabilities",
+  "description": "Every backend capability Portal exposes, derived from the deployed TinyHumans OpenAPI contract and the vendored SDK's public-route allowlist.",
+  "source": {
+    "url": "https://api.tinyhumans.ai/swagger.json",
+    "title": "TinyHumans API",
+    "version": "1.0.0"
+  },
+  "capabilityCount": 202,
+  "categories": [
+    "account",
+    "agents",
+    "automation",
+    "data",
+    "files",
+    "media",
+    "messaging",
+    "models",
+    "research",
+    "search"
+  ],
+  "capabilities": [
+    {
+      "id": "announcements.latest",
+      "aliases": [],
+      "category": "account",
+      "group": "announcements",
+      "provider": "TinyHumans",
+      "summary": "Get the latest active announcement for the signed-in user",
+      "route": "GET /announcements/latest",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "apify.run",
+      "aliases": [],
+      "category": "automation",
+      "group": "apify",
+      "provider": "Apify",
+      "summary": "Run an Apify actor",
+      "route": "POST /agent-integrations/apify/run",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "actor_id",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "input",
+          "in": "body",
+          "type": "object",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "sync",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": "Defaults to true."
+        },
+        {
+          "name": "timeout_secs",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": "Defaults to 120."
+        },
+        {
+          "name": "memory_mbytes",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "apify.runs",
+      "aliases": [],
+      "category": "automation",
+      "group": "apify",
+      "provider": "Apify",
+      "summary": "Get status of an Apify actor run",
+      "route": "GET /agent-integrations/apify/runs/{runId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "run_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "apify.runs.results",
+      "aliases": [],
+      "category": "automation",
+      "group": "apify",
+      "provider": "Apify",
+      "summary": "Get results from a completed Apify actor run",
+      "route": "GET /agent-integrations/apify/runs/{runId}/results",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "run_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "auth.callback",
+      "aliases": [],
+      "category": "account",
+      "group": "auth",
+      "provider": "TinyHumans",
+      "summary": "OAuth callback; completes connect flow (handled by provider redirect)",
+      "route": "GET /auth/{provider}/callback",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "provider",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "auth.channels.link_token",
+      "aliases": [],
+      "category": "account",
+      "group": "auth",
+      "provider": "TinyHumans",
+      "summary": "Create a short-lived channel link token for the authenticated user",
+      "route": "POST /auth/channels/{channel}/link-token",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "channel",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "One of: telegram, discord."
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "auth.connect",
+      "aliases": [],
+      "category": "account",
+      "group": "auth",
+      "provider": "TinyHumans",
+      "summary": "Start OAuth connect flow for a provider",
+      "route": "GET /auth/{provider}/connect",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "provider",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "response_type",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "One of: redirect, json."
+        },
+        {
+          "name": "skill_id",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "auth.email.send_link",
+      "aliases": [],
+      "category": "account",
+      "group": "auth",
+      "provider": "TinyHumans",
+      "summary": "Send magic link for email login",
+      "route": "POST /auth/email/send-link",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "email",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "frontend_redirect_uri",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "auth.email.verify",
+      "aliases": [],
+      "category": "account",
+      "group": "auth",
+      "provider": "TinyHumans",
+      "summary": "Verify magic link and complete email login",
+      "route": "GET /auth/email/verify",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "token",
+          "in": "query",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "auth.integrations.delete",
+      "aliases": [],
+      "category": "account",
+      "group": "auth",
+      "provider": "TinyHumans",
+      "summary": "Revoke and delete an OAuth integration",
+      "route": "DELETE /auth/integrations/{integrationId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "integration_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "auth.integrations.list",
+      "aliases": [],
+      "category": "account",
+      "group": "auth",
+      "provider": "TinyHumans",
+      "summary": "List OAuth integrations for the current user",
+      "route": "GET /auth/integrations",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "auth.integrations.tokens",
+      "aliases": [],
+      "category": "account",
+      "group": "auth",
+      "provider": "TinyHumans",
+      "summary": "Get OAuth tokens for an integration (one-time handoff, encrypted)",
+      "route": "POST /auth/integrations/{integrationId}/tokens",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "integration_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "key",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Client encryption key (32-byte raw string, base64, or base64url)."
+        }
+      ]
+    },
+    {
+      "id": "auth.login",
+      "aliases": [],
+      "category": "account",
+      "group": "auth",
+      "provider": "TinyHumans",
+      "summary": "Start OAuth login flow (primary auth)",
+      "route": "GET /auth/{provider}/login",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "provider",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "One of: google, github, twitter, discord."
+        },
+        {
+          "name": "redirect",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Named redirect target after login (app = desktop, dashboard = website, admin = admin dashboard, cli = terminal). `cli` does not redirect: the callback renders a page showing a one-time login token for the user to paste into a terminal that cannot host the loopback listener (e.g. over SSH). The terminal exchanges it via POST /auth/login-token/consume. One of: app, dashboard, admin, cli."
+        },
+        {
+          "name": "redirect_uri",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Redirect URI the callback returns to verbatim, with token/error/key appended, instead of the default openhuman:// deep link. Two shapes are accepted: an RFC 8252 loopback URI (e.g. http://127.0.0.1:53824/auth?state=...), or an https URI whose origin is a provisioned hosted OpenCompany tenant (e.g. https://acme.opencompany.ai/?company=acme). Anything else is a 400."
+        },
+        {
+          "name": "product",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Product this login should be attributed to (tinyhumansai/backend#1214). Case-insensitive. Carried through the OAuth state and recorded on the user (sticky, additive) once the callback completes. Omit for no attribution. One of: OPENHUMAN, OPENCOMPANY, MEDULLA."
+        }
+      ]
+    },
+    {
+      "id": "auth.login_token.consume",
+      "aliases": [],
+      "category": "account",
+      "group": "auth",
+      "provider": "TinyHumans",
+      "summary": "Exchange a consumable login token for a JWT",
+      "route": "POST /auth/login-token/consume",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "token",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "auth.me",
+      "aliases": [],
+      "category": "account",
+      "group": "auth",
+      "provider": "TinyHumans",
+      "summary": "Get current authenticated user details",
+      "route": "GET /auth/me",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "browse.agent.run",
+      "aliases": [],
+      "category": "search",
+      "group": "browse",
+      "provider": "TinyFish",
+      "summary": "Agent run request forwarded to TinyFish verbatim.",
+      "route": "POST /agent-integrations/tinyfish/agent/run",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "budgets",
+      "aliases": [],
+      "category": "account",
+      "group": "budgets",
+      "provider": "TinyHumans",
+      "summary": "List the authenticated user's BYO subscription seats with live headroom",
+      "route": "GET /budgets",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "budgets.seats.create",
+      "aliases": [],
+      "category": "account",
+      "group": "budgets",
+      "provider": "TinyHumans",
+      "summary": "Connect a BYO subscription seat",
+      "route": "POST /budgets/seats",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "plan",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Catalog plan id (e.g. claude_max_20x, chatgpt_pro)."
+        },
+        {
+          "name": "priority",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": "Lower wins among seats with headroom."
+        },
+        {
+          "name": "agent_ids",
+          "in": "body",
+          "type": "array",
+          "required": false,
+          "description": "Explicit harness agent ids pinned to this seat. Array of string."
+        },
+        {
+          "name": "enabled",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "budgets.seats.delete",
+      "aliases": [],
+      "category": "account",
+      "group": "budgets",
+      "provider": "TinyHumans",
+      "summary": "Disconnect a seat",
+      "route": "DELETE /budgets/seats/{seatId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "seat_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "budgets.seats.update",
+      "aliases": [],
+      "category": "account",
+      "group": "budgets",
+      "provider": "TinyHumans",
+      "summary": "Update a seat's priority, agent pins, or enabled state",
+      "route": "PATCH /budgets/seats/{seatId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "seat_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "priority",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "agent_ids",
+          "in": "body",
+          "type": "array",
+          "required": false,
+          "description": "Array of string."
+        },
+        {
+          "name": "enabled",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "calendar.connect",
+      "aliases": [],
+      "category": "data",
+      "group": "calendar",
+      "provider": "Recall.ai",
+      "summary": "Start the Recall.ai Calendar V1 OAuth flow for Google Calendar",
+      "route": "POST /agent-integrations/recall-calendar/connect",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "calendar.disconnect",
+      "aliases": [],
+      "category": "data",
+      "group": "calendar",
+      "provider": "Recall.ai",
+      "summary": "Disconnect the user's Google Calendar from Recall",
+      "route": "POST /agent-integrations/recall-calendar/disconnect",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "calendar.meetings",
+      "aliases": [],
+      "category": "data",
+      "group": "calendar",
+      "provider": "Recall.ai",
+      "summary": "List upcoming meetings from the connected calendar",
+      "route": "GET /agent-integrations/recall-calendar/meetings",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "calendar.oauth_complete",
+      "aliases": [],
+      "category": "data",
+      "group": "calendar",
+      "provider": "Recall.ai",
+      "summary": "OAuth landing page (public)",
+      "route": "GET /agent-integrations/recall-calendar/oauth-complete",
+      "auth": "Public",
+      "response": "Json",
+      "params": [
+        {
+          "name": "status",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "One of: success, error."
+        },
+        {
+          "name": "t",
+          "in": "query",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "calendar.status",
+      "aliases": [],
+      "category": "data",
+      "group": "calendar",
+      "provider": "Recall.ai",
+      "summary": "Get the user's Recall calendar connection status",
+      "route": "GET /agent-integrations/recall-calendar/status",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "channels.messages.create",
+      "aliases": [],
+      "category": "messaging",
+      "group": "channels",
+      "provider": "TinyChannels",
+      "summary": "Send a rich message to a user's linked channel",
+      "route": "POST /channels/{channel}/messages",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "channel",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "One of: telegram, discord."
+        },
+        {
+          "name": "text",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "parse_mode",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "One of: markdown, plain."
+        },
+        {
+          "name": "photo_url",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "sticker_file_id",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "animation_url",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "channel_id",
+          "in": "body",
+          "type": "any",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "buttons",
+          "in": "body",
+          "type": "array",
+          "required": false,
+          "description": "Array of object."
+        },
+        {
+          "name": "reply_to_message_id",
+          "in": "body",
+          "type": "any",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "thread_id",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "channels.messages.delete",
+      "aliases": [],
+      "category": "messaging",
+      "group": "channels",
+      "provider": "TinyChannels",
+      "summary": "Delete a message from a user's linked channel",
+      "route": "DELETE /channels/{channel}/messages/{messageId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "channel",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "One of: telegram, discord."
+        },
+        {
+          "name": "message_id",
+          "in": "path",
+          "type": "any",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "channels.reactions",
+      "aliases": [],
+      "category": "messaging",
+      "group": "channels",
+      "provider": "TinyChannels",
+      "summary": "React to a message on a user's linked channel",
+      "route": "POST /channels/{channel}/reactions",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "channel",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "One of: telegram, discord."
+        },
+        {
+          "name": "message_id",
+          "in": "body",
+          "type": "any",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "emoji",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "chat_id",
+          "in": "body",
+          "type": "any",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "channels.threads.create",
+      "aliases": [],
+      "category": "messaging",
+      "group": "channels",
+      "provider": "TinyChannels",
+      "summary": "Create a new conversation thread",
+      "route": "POST /channels/{channel}/threads",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "channel",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "One of: telegram, discord."
+        },
+        {
+          "name": "title",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "channels.threads.list",
+      "aliases": [],
+      "category": "messaging",
+      "group": "channels",
+      "provider": "TinyChannels",
+      "summary": "List conversation threads",
+      "route": "GET /channels/{channel}/threads",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "channel",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "One of: telegram, discord."
+        },
+        {
+          "name": "active",
+          "in": "query",
+          "type": "boolean",
+          "required": false,
+          "description": "Filter by active status"
+        }
+      ]
+    },
+    {
+      "id": "channels.threads.update",
+      "aliases": [],
+      "category": "messaging",
+      "group": "channels",
+      "provider": "TinyChannels",
+      "summary": "Update a thread's status",
+      "route": "PATCH /channels/{channel}/threads/{threadId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "channel",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "One of: telegram, discord."
+        },
+        {
+          "name": "thread_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "action",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "One of: close, reopen."
+        }
+      ]
+    },
+    {
+      "id": "channels.typing",
+      "aliases": [],
+      "category": "messaging",
+      "group": "channels",
+      "provider": "TinyChannels",
+      "summary": "Broadcast a typing indicator on a user's linked channel",
+      "route": "POST /channels/{channel}/typing",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "channel",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "One of: telegram, discord."
+        },
+        {
+          "name": "chat_id",
+          "in": "body",
+          "type": "any",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "thread_id",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "composio.authorize",
+      "aliases": [],
+      "category": "automation",
+      "group": "composio",
+      "provider": "Composio",
+      "summary": "Start a Composio OAuth connection flow",
+      "route": "POST /agent-integrations/composio/authorize",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "toolkit",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Toolkit slug (e.g. `gmail`)"
+        },
+        {
+          "name": "config",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Toolkit-specific connection params forwarded to Composio. Required only by toolkits whose auth scheme asks for an extra identifier (e.g. WhatsApp's `generic_id`)."
+        },
+        {
+          "name": "callback_url",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Optional override for the post-auth redirect URL."
+        }
+      ]
+    },
+    {
+      "id": "composio.connections.delete",
+      "aliases": [],
+      "category": "automation",
+      "group": "composio",
+      "provider": "Composio",
+      "summary": "Delete a Composio connection",
+      "route": "DELETE /agent-integrations/composio/connections/{connectionId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "connection_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "composio.connections.list",
+      "aliases": [],
+      "category": "automation",
+      "group": "composio",
+      "provider": "Composio",
+      "summary": "List the user's Composio connections",
+      "route": "GET /agent-integrations/composio/connections",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "composio.github.repos",
+      "aliases": [],
+      "category": "automation",
+      "group": "composio",
+      "provider": "Composio",
+      "summary": "GET /agent-integrations/composio/github/repos (undocumented public route)",
+      "route": "GET /agent-integrations/composio/github/repos",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "composio.triggers.available",
+      "aliases": [],
+      "category": "automation",
+      "group": "composio",
+      "provider": "Composio",
+      "summary": "List triggers available for a toolkit",
+      "route": "GET /agent-integrations/composio/triggers/available",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "toolkit",
+          "in": "query",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "connection_id",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "composio.triggers.create",
+      "aliases": [],
+      "category": "automation",
+      "group": "composio",
+      "provider": "Composio",
+      "summary": "Enable a Composio trigger on one of the user's connections",
+      "route": "POST /agent-integrations/composio/triggers",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "connection_id",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "slug",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Trigger slug (e.g. `GMAIL_NEW_GMAIL_MESSAGE`)"
+        },
+        {
+          "name": "trigger_config",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "composio.triggers.delete",
+      "aliases": [],
+      "category": "automation",
+      "group": "composio",
+      "provider": "Composio",
+      "summary": "Disable (delete) a Composio trigger owned by the user",
+      "route": "DELETE /agent-integrations/composio/triggers/{triggerId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "trigger_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "composio.triggers.list",
+      "aliases": [],
+      "category": "automation",
+      "group": "composio",
+      "provider": "Composio",
+      "summary": "List the user's currently enabled Composio triggers",
+      "route": "GET /agent-integrations/composio/triggers",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "toolkit",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Optional toolkit slug filter (e.g. `gmail`)"
+        }
+      ]
+    },
+    {
+      "id": "coupons.me",
+      "aliases": [],
+      "category": "account",
+      "group": "coupons",
+      "provider": "TinyHumans",
+      "summary": "List the current user's redeemed coupons",
+      "route": "GET /coupons/me",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "coupons.redeem",
+      "aliases": [],
+      "category": "account",
+      "group": "coupons",
+      "provider": "TinyHumans",
+      "summary": "Redeem a coupon code",
+      "route": "POST /coupons/redeem",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "code",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Coupon code in ABCD-EFGH format"
+        }
+      ]
+    },
+    {
+      "id": "credits.balance",
+      "aliases": [
+        "payments.credits.balance"
+      ],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Get the current user's credit balance",
+      "route": "GET /payments/credits/balance",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "crypto.bridge",
+      "aliases": [],
+      "category": "data",
+      "group": "crypto",
+      "provider": "Crypto routing",
+      "summary": "Build a cross-chain bridge transaction",
+      "route": "POST /agent-integrations/crypto/bridge",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "src_chain_id",
+          "in": "body",
+          "type": "integer",
+          "required": true,
+          "description": "Source deBridge chain id"
+        },
+        {
+          "name": "src_chain_token_in",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Source token address"
+        },
+        {
+          "name": "src_chain_token_in_amount",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Source amount in the token's smallest unit"
+        },
+        {
+          "name": "dst_chain_id",
+          "in": "body",
+          "type": "integer",
+          "required": true,
+          "description": "Destination deBridge chain id"
+        },
+        {
+          "name": "dst_chain_token_out",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Destination token address"
+        },
+        {
+          "name": "dst_chain_token_out_amount",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Destination amount, or \"auto\" for market rate (default \"auto\")"
+        },
+        {
+          "name": "dst_chain_token_out_recipient",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Address that receives the bridged tokens"
+        },
+        {
+          "name": "src_chain_order_authority_address",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Source-chain order authority (can cancel/patch the order)"
+        },
+        {
+          "name": "dst_chain_order_authority_address",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Destination-chain order authority"
+        }
+      ]
+    },
+    {
+      "id": "crypto.routes",
+      "aliases": [],
+      "category": "data",
+      "group": "crypto",
+      "provider": "Crypto routing",
+      "summary": "List supported chains for cross-chain swaps and bridges",
+      "route": "GET /agent-integrations/crypto/routes",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "crypto.swap",
+      "aliases": [],
+      "category": "data",
+      "group": "crypto",
+      "provider": "Crypto routing",
+      "summary": "Build a single-chain swap transaction",
+      "route": "POST /agent-integrations/crypto/swap",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "chain_id",
+          "in": "body",
+          "type": "integer",
+          "required": true,
+          "description": "deBridge chain id the swap executes on"
+        },
+        {
+          "name": "token_in",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Input token address (use the zero address for native)"
+        },
+        {
+          "name": "token_in_amount",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Input amount in the token's smallest unit"
+        },
+        {
+          "name": "token_out",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Output token address"
+        },
+        {
+          "name": "token_out_recipient",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Address that receives the output tokens"
+        },
+        {
+          "name": "sender_address",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Address sending the transaction"
+        },
+        {
+          "name": "slippage",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Slippage percent or \"auto\" (default \"auto\")"
+        }
+      ]
+    },
+    {
+      "id": "feedback.comments",
+      "aliases": [],
+      "category": "account",
+      "group": "feedback",
+      "provider": "TinyHumans",
+      "summary": "Comment on a feedback item",
+      "route": "POST /feedback/{id}/comments",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "feedback.create",
+      "aliases": [],
+      "category": "account",
+      "group": "feedback",
+      "provider": "TinyHumans",
+      "summary": "Submit feedback or a bug report (LLM-moderated, rate-limited)",
+      "route": "POST /feedback",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "type",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "One of: feature, bug."
+        },
+        {
+          "name": "title",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "product",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Optional. The product the feedback was submitted from. Used as the fallback target repo when content-based routing is not confident. An unrecognised value is rejected with 400. One of: backend, opencompany, openhuman, medulla, tiny.place, landing."
+        }
+      ]
+    },
+    {
+      "id": "feedback.get",
+      "aliases": [],
+      "category": "account",
+      "group": "feedback",
+      "provider": "TinyHumans",
+      "summary": "Get a feedback item with its comments",
+      "route": "GET /feedback/{id}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "feedback.ingest",
+      "aliases": [],
+      "category": "account",
+      "group": "feedback",
+      "provider": "TinyHumans",
+      "summary": "Ingest feedback from another product into the enrichment pipeline",
+      "route": "POST /feedback/ingest",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "type",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "One of: feature, bug."
+        },
+        {
+          "name": "title",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "product",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "One of: backend, opencompany, openhuman, medulla, tiny.place, landing."
+        },
+        {
+          "name": "origin",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "external_ref",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "feedback.list",
+      "aliases": [],
+      "category": "account",
+      "group": "feedback",
+      "provider": "TinyHumans",
+      "summary": "List feedback on the public board",
+      "route": "GET /feedback",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "type",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "One of: feature, bug."
+        },
+        {
+          "name": "status",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "One of: open, planned, completed."
+        },
+        {
+          "name": "sort",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "One of: hot, top, new. Defaults to \"hot\"."
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": "Defaults to 1."
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": "Defaults to 20."
+        }
+      ]
+    },
+    {
+      "id": "feedback.vote",
+      "aliases": [],
+      "category": "account",
+      "group": "feedback",
+      "provider": "TinyHumans",
+      "summary": "Up/down-vote a feedback item (value 0 retracts)",
+      "route": "POST /feedback/{id}/vote",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "value",
+          "in": "body",
+          "type": "integer",
+          "required": true,
+          "description": "One of: 1, -1, 0."
+        }
+      ]
+    },
+    {
+      "id": "files.create",
+      "aliases": [],
+      "category": "files",
+      "group": "files",
+      "provider": "TinyHumans file storage",
+      "summary": "Upload a file to managed S3 storage",
+      "route": "POST /agent-integrations/file-storage/files",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "file",
+          "in": "body",
+          "type": "file",
+          "required": true,
+          "description": "Path to a local file to upload."
+        },
+        {
+          "name": "visibility",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Defaults to private One of: public, private."
+        },
+        {
+          "name": "ttl_days",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "files.delete",
+      "aliases": [],
+      "category": "files",
+      "group": "files",
+      "provider": "TinyHumans file storage",
+      "summary": "Delete a file",
+      "route": "DELETE /agent-integrations/file-storage/files/{fileId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "file_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "files.download",
+      "aliases": [],
+      "category": "files",
+      "group": "files",
+      "provider": "TinyHumans file storage",
+      "summary": "Download a file (302 to presigned S3 GET)",
+      "route": "GET /agent-integrations/file-storage/files/{fileId}/download",
+      "auth": "Required",
+      "response": "Binary",
+      "params": [
+        {
+          "name": "file_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "files.get",
+      "aliases": [],
+      "category": "files",
+      "group": "files",
+      "provider": "TinyHumans file storage",
+      "summary": "File metadata",
+      "route": "GET /agent-integrations/file-storage/files/{fileId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "file_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "files.link",
+      "aliases": [],
+      "category": "files",
+      "group": "files",
+      "provider": "TinyHumans file storage",
+      "summary": "Generate a presigned download link",
+      "route": "POST /agent-integrations/file-storage/files/{fileId}/link",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "file_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "expires_in_seconds",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": "Defaults to 3600."
+        }
+      ]
+    },
+    {
+      "id": "files.list",
+      "aliases": [],
+      "category": "files",
+      "group": "files",
+      "provider": "TinyHumans file storage",
+      "summary": "List the caller's active files",
+      "route": "GET /agent-integrations/file-storage/files",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "limit",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": "Defaults to 50."
+        },
+        {
+          "name": "cursor",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "files.public",
+      "aliases": [],
+      "category": "files",
+      "group": "files",
+      "provider": "TinyHumans file storage",
+      "summary": "Fetch a public file (unauthenticated)",
+      "route": "GET /agent-integrations/file-storage/public/{fileId}",
+      "auth": "Public",
+      "response": "Binary",
+      "params": [
+        {
+          "name": "file_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "files.update",
+      "aliases": [],
+      "category": "files",
+      "group": "files",
+      "provider": "TinyHumans file storage",
+      "summary": "Change file visibility",
+      "route": "PATCH /agent-integrations/file-storage/files/{fileId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "file_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "visibility",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "One of: public, private."
+        }
+      ]
+    },
+    {
+      "id": "files.usage",
+      "aliases": [],
+      "category": "files",
+      "group": "files",
+      "provider": "TinyHumans file storage",
+      "summary": "Storage usage and plan entitlements",
+      "route": "GET /agent-integrations/file-storage/usage",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "finance.commodity",
+      "aliases": [],
+      "category": "data",
+      "group": "finance",
+      "provider": "Alpha Vantage",
+      "summary": "Commodity / futures price series (WTI, BRENT, NATURAL_GAS) via Alpha Vantage",
+      "route": "POST /agent-integrations/financial-apis/commodity",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "commodity",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "One of: WTI, BRENT, NATURAL_GAS."
+        },
+        {
+          "name": "interval",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "One of: daily, weekly, monthly."
+        },
+        {
+          "name": "limit",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "finance.crypto_series",
+      "aliases": [],
+      "category": "data",
+      "group": "finance",
+      "provider": "Alpha Vantage",
+      "summary": "Daily OHLCV series for a digital currency via Alpha Vantage DIGITAL_CURRENCY_DAILY",
+      "route": "POST /agent-integrations/financial-apis/crypto-series",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "symbol",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Crypto symbol, e.g. BTC, ETH"
+        },
+        {
+          "name": "market",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Quote market, defaults to USD"
+        },
+        {
+          "name": "limit",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": "Max points to return (most recent first), default 30"
+        }
+      ]
+    },
+    {
+      "id": "finance.exchange_rate",
+      "aliases": [],
+      "category": "data",
+      "group": "finance",
+      "provider": "Alpha Vantage",
+      "summary": "Realtime FX or crypto exchange rate via Alpha Vantage CURRENCY_EXCHANGE_RATE",
+      "route": "POST /agent-integrations/financial-apis/exchange-rate",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "from_currency",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Source currency (fiat or crypto, e.g. BTC, USD, EUR)"
+        },
+        {
+          "name": "to_currency",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Target currency"
+        }
+      ]
+    },
+    {
+      "id": "finance.options",
+      "aliases": [],
+      "category": "data",
+      "group": "finance",
+      "provider": "Alpha Vantage",
+      "summary": "Realtime options chain for a symbol via Alpha Vantage REALTIME_OPTIONS",
+      "route": "POST /agent-integrations/financial-apis/options",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "symbol",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "require_greeks",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": "Include greeks and implied volatility (premium)"
+        }
+      ]
+    },
+    {
+      "id": "finance.quote",
+      "aliases": [],
+      "category": "data",
+      "group": "finance",
+      "provider": "Alpha Vantage",
+      "summary": "Latest quote for a stock or index symbol via Alpha Vantage GLOBAL_QUOTE",
+      "route": "POST /agent-integrations/financial-apis/quote",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "symbol",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Stock or index ticker (e.g. AAPL, SPY)"
+        }
+      ]
+    },
+    {
+      "id": "gifs.search",
+      "aliases": [],
+      "category": "search",
+      "group": "gifs",
+      "provider": "Tenor",
+      "summary": "Search for GIFs via the Tenor API",
+      "route": "POST /agent-integrations/tenor/search",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "query",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Search query for GIFs"
+        },
+        {
+          "name": "limit",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum number of GIFs to return"
+        },
+        {
+          "name": "content_filter",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Content safety filter level One of: off, low, medium, high."
+        },
+        {
+          "name": "pos",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Pagination cursor from a previous response"
+        }
+      ]
+    },
+    {
+      "id": "health.check",
+      "aliases": [
+        "health"
+      ],
+      "category": "account",
+      "group": "health",
+      "provider": "TinyHumans",
+      "summary": "Health check endpoint",
+      "route": "GET /",
+      "auth": "Public",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "history.claim",
+      "aliases": [],
+      "category": "account",
+      "group": "history",
+      "provider": "TinyHumans",
+      "summary": "Score uploaded history and grant the welcome credit",
+      "route": "POST /agent-integrations/history-rewards/claim",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "history.status",
+      "aliases": [],
+      "category": "account",
+      "group": "history",
+      "provider": "TinyHumans",
+      "summary": "Whether the caller has already earned the history reward",
+      "route": "GET /agent-integrations/history-rewards/status",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "history.uploads",
+      "aliases": [],
+      "category": "account",
+      "group": "history",
+      "provider": "TinyHumans",
+      "summary": "Upload one redacted coding-agent session transcript",
+      "route": "POST /agent-integrations/history-rewards/uploads",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "file",
+          "in": "body",
+          "type": "file",
+          "required": true,
+          "description": "Path to a local file to upload."
+        },
+        {
+          "name": "agent",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "One of: claude, codex, opencode."
+        }
+      ]
+    },
+    {
+      "id": "invite.my_codes",
+      "aliases": [],
+      "category": "account",
+      "group": "invite",
+      "provider": "TinyHumans",
+      "summary": "List the current user's invite codes with usage info",
+      "route": "GET /invite/my-codes",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "invite.redeem",
+      "aliases": [],
+      "category": "account",
+      "group": "invite",
+      "provider": "TinyHumans",
+      "summary": "Redeem an invite code",
+      "route": "POST /invite/redeem",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "code",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "invite.status",
+      "aliases": [],
+      "category": "account",
+      "group": "invite",
+      "provider": "TinyHumans",
+      "summary": "Check if an invite code is valid and available",
+      "route": "GET /invite/status",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "code",
+          "in": "query",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "keys.create",
+      "aliases": [],
+      "category": "account",
+      "group": "keys",
+      "provider": "TinyHumans",
+      "summary": "Create an API key",
+      "route": "POST /api-keys",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "name",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "scopes",
+          "in": "body",
+          "type": "array",
+          "required": false,
+          "description": "Array of string. Defaults to [\"read\"]."
+        },
+        {
+          "name": "allowed_ips",
+          "in": "body",
+          "type": "array",
+          "required": false,
+          "description": "Single IPs and/or CIDR ranges (IPv4 or IPv6). Empty means no IP restriction. Array of string."
+        },
+        {
+          "name": "expires_at",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Optional expiry, at most 1 year out."
+        }
+      ]
+    },
+    {
+      "id": "keys.delete",
+      "aliases": [],
+      "category": "account",
+      "group": "keys",
+      "provider": "TinyHumans",
+      "summary": "Revoke an API key",
+      "route": "DELETE /api-keys/{keyId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "key_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "keys.list",
+      "aliases": [],
+      "category": "account",
+      "group": "keys",
+      "provider": "TinyHumans",
+      "summary": "List the caller's API keys",
+      "route": "GET /api-keys",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "links",
+      "aliases": [],
+      "category": "account",
+      "group": "links",
+      "provider": "TinyHumans",
+      "summary": "Redirect a short link code to its original URL",
+      "route": "GET /r/{code}",
+      "auth": "Public",
+      "response": "Json",
+      "params": [
+        {
+          "name": "code",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "mascots.demo",
+      "aliases": [],
+      "category": "media",
+      "group": "mascots",
+      "provider": "TinyHumans",
+      "summary": "Interactive mascot library demo page",
+      "route": "GET /mascots/demo",
+      "auth": "Public",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "mascots.get",
+      "aliases": [],
+      "category": "media",
+      "group": "mascots",
+      "provider": "TinyHumans",
+      "summary": "Get a mascot manifest",
+      "route": "GET /mascots/{id}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "mascots.join_meeting",
+      "aliases": [],
+      "category": "media",
+      "group": "mascots",
+      "provider": "TinyHumans",
+      "summary": "Send the mascot bot into a live meeting",
+      "route": "POST /mascots/join-meeting",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "platform",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "One of: gmeet, zoom, teams, webex."
+        },
+        {
+          "name": "meet_url",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "display_name",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Name shown in the meeting participant list"
+        },
+        {
+          "name": "agent_name",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Name the AI uses in conversation (defaults to displayName or \"OpenHuman\")"
+        },
+        {
+          "name": "system_prompt",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Custom system prompt for the meeting LLM. Use {{AGENT_NAME}} as a placeholder."
+        },
+        {
+          "name": "mascot_id",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "muted",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, the bot joins silently (no TTS or welcome prompt)"
+        },
+        {
+          "name": "rive_colors",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "mascots.list",
+      "aliases": [],
+      "category": "media",
+      "group": "mascots",
+      "provider": "TinyHumans",
+      "summary": "List available mascots",
+      "route": "GET /mascots",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "mascots.meetings",
+      "aliases": [],
+      "category": "media",
+      "group": "mascots",
+      "provider": "TinyHumans",
+      "summary": "List the authenticated user's mascot-bot meeting history",
+      "route": "GET /mascots/meetings",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "limit",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": "Defaults to 50."
+        }
+      ]
+    },
+    {
+      "id": "mascots.riv",
+      "aliases": [],
+      "category": "media",
+      "group": "mascots",
+      "provider": "TinyHumans",
+      "summary": "Download the Rive animation file for a mascot",
+      "route": "GET /mascots/{id}/riv",
+      "auth": "Required",
+      "response": "Binary",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "media.image",
+      "aliases": [
+        "media.images"
+      ],
+      "category": "media",
+      "group": "media",
+      "provider": "GMI (Seedream, Seedance, Veo)",
+      "summary": "Generate or edit an image via GMI (Seedream / SeedEdit)",
+      "route": "POST /agent-integrations/media-generation/images",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "model",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Upstream model id. Defaults to seedream-4-0-250828."
+        },
+        {
+          "name": "prompt",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "size",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "e.g. 1024x1024, 1536x1024"
+        },
+        {
+          "name": "n",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "input_images",
+          "in": "body",
+          "type": "array",
+          "required": false,
+          "description": "Reference image URLs for edit / image-to-image Array of string."
+        },
+        {
+          "name": "seed",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "wait",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "timeout_seconds",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "media.models",
+      "aliases": [],
+      "category": "media",
+      "group": "media",
+      "provider": "GMI (Seedream, Seedance, Veo)",
+      "summary": "List curated media-generation models",
+      "route": "GET /agent-integrations/media-generation/models",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "include_upstream",
+          "in": "query",
+          "type": "boolean",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "media.requests",
+      "aliases": [],
+      "category": "media",
+      "group": "media",
+      "provider": "GMI (Seedream, Seedance, Veo)",
+      "summary": "Poll a media-generation request",
+      "route": "GET /agent-integrations/media-generation/requests/{requestId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "request_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "media.video",
+      "aliases": [
+        "media.videos"
+      ],
+      "category": "media",
+      "group": "media",
+      "provider": "GMI (Seedream, Seedance, Veo)",
+      "summary": "Generate a video via GMI (Seedance / Veo)",
+      "route": "POST /agent-integrations/media-generation/videos",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "model",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Upstream model id. Defaults to seedance-1-0-pro-fast-251015."
+        },
+        {
+          "name": "prompt",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "input_image",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "First-frame / reference image URL for image-to-video"
+        },
+        {
+          "name": "duration_seconds",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "aspect_ratio",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "e.g. 16:9, 9:16, 1:1"
+        },
+        {
+          "name": "negative_prompt",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "seed",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "wait",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "timeout_seconds",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.hosts.delete",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Remove an enrolled host",
+      "route": "DELETE /medulla/v1/hosts/{id}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.hosts.enroll",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Redeem an enroll token and register a host",
+      "route": "POST /medulla/v1/hosts/enroll",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "token",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.hosts.entitlements",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Host-link plan entitlements",
+      "route": "GET /medulla/v1/hosts/entitlements",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "medulla.hosts.invite",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Mint a one-shot host enroll token",
+      "route": "POST /medulla/v1/hosts/invite",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "name",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Unique within the team"
+        }
+      ]
+    },
+    {
+      "id": "medulla.hosts.list",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "List enrolled hosts",
+      "route": "GET /medulla/v1/hosts",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "medulla.roster",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "The caller's connected worker roster",
+      "route": "GET /medulla/v1/roster",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "medulla.routing.strategy.list",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Read the caller's default-worker routing strategy",
+      "route": "GET /medulla/v1/routing/strategy",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "medulla.routing.strategy.replace",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Set the caller's default-worker routing strategy",
+      "route": "PUT /medulla/v1/routing/strategy",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "strategy",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "One of: manual, balanced, cpuFirst, memoryFirst."
+        }
+      ]
+    },
+    {
+      "id": "medulla.sessions.abort",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Cancel the running cycle for a session",
+      "route": "POST /medulla/v1/sessions/{id}/abort",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "medulla.sessions.create",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Mint a new interactive session",
+      "route": "POST /medulla/v1/sessions",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "title",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "meta",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "async_delegation",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": "Opt this session in/out of async delegation mode (background fan-out). Omit to inherit the server default."
+        },
+        {
+          "name": "flavor",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Hosted flavor bound to the session. Omit for the default (tui). An unknown value is rejected with 400. Selecting openhuman requires a registered device counterpart (the orch:register_tools handshake completed); otherwise 403. One of: tui, openhuman."
+        },
+        {
+          "name": "workspace_profiles",
+          "in": "body",
+          "type": "array",
+          "required": false,
+          "description": "Authored MEDULLA.md profiles for the workspaces this session works over (module 17). Sent as raw file text; the SDK parses it. Bound to the session and applied to every cycle it runs; never merged (each is tagged with its own workspace). Max 16 entries, 20k chars each — an invalid shape is rejected with 400. Array of object."
+        }
+      ]
+    },
+    {
+      "id": "medulla.sessions.delete",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Archive a session",
+      "route": "DELETE /medulla/v1/sessions/{id}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.sessions.events",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Persisted event-envelope replay",
+      "route": "GET /medulla/v1/sessions/{id}/events",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "after",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.sessions.get",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Session state snapshot",
+      "route": "GET /medulla/v1/sessions/{id}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.sessions.list",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "List the caller's interactive sessions",
+      "route": "GET /medulla/v1/sessions",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "medulla.sessions.messages.create",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Ingest a user message and start a cycle",
+      "route": "POST /medulla/v1/sessions/{id}/messages",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "sync",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Set to 1 to block for the reply"
+        },
+        {
+          "name": "detached",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Async delegation mode for THIS turn. 1 ⇒ un-flagged `delegate_tasks` calls detach and the cycle answers without draining them (results arrive later on the session stream). 0 ⇒ drain before answering. Omit to inherit the session's mint-time default, then the server default. Applies to this message only, not the session. One of: 0, 1, true, false."
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.sessions.messages.list",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Ordered message replay",
+      "route": "GET /medulla/v1/sessions/{id}/messages",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "after",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.sessions.stream",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Live event stream (SSE)",
+      "route": "GET /medulla/v1/sessions/{id}/stream",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "token",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "last_event_id",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "after",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.tasks.create",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Create a local task",
+      "route": "POST /medulla/v1/tasks",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "title",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "description",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "status",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "One of: open, inProgress, done, cancelled."
+        },
+        {
+          "name": "recurrence",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.tasks.delete",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Delete a local task",
+      "route": "DELETE /medulla/v1/tasks/{id}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.tasks.list",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "List the caller's local tasks",
+      "route": "GET /medulla/v1/tasks",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "medulla.tasks.sources.create",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Add a GitHub task source by owner/repo",
+      "route": "POST /medulla/v1/tasks/sources",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "repository",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "owner/repo"
+        },
+        {
+          "name": "state",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "One of: open, closed, all."
+        },
+        {
+          "name": "labels",
+          "in": "body",
+          "type": "array",
+          "required": false,
+          "description": "Array of string."
+        },
+        {
+          "name": "filter",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "token",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Access token — never rendered back"
+        },
+        {
+          "name": "enabled",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.tasks.sources.delete",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Remove a GitHub task source",
+      "route": "DELETE /medulla/v1/tasks/sources/{id}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.tasks.sources.list",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "List the caller's GitHub task sources",
+      "route": "GET /medulla/v1/tasks/sources",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "medulla.tasks.sources.sync",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Synchronize a GitHub task source into the ledger",
+      "route": "POST /medulla/v1/tasks/sources/{id}/sync",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "medulla.tasks.update",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "Edit a local task's title, description, or status",
+      "route": "PATCH /medulla/v1/tasks/{id}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "title",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "description",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "status",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "One of: open, inProgress, done, cancelled."
+        },
+        {
+          "name": "recurrence",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "medulla.workflows",
+      "aliases": [],
+      "category": "agents",
+      "group": "medulla",
+      "provider": "Medulla",
+      "summary": "The caller's advertised workflow catalog",
+      "route": "GET /medulla/v1/workflows",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "models.chat",
+      "aliases": [
+        "models.chat.completions"
+      ],
+      "category": "models",
+      "group": "models",
+      "provider": "TinyHumans inference gateway",
+      "summary": "Create a chat completion",
+      "route": "POST /openai/v1/chat/completions",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "model",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "messages",
+          "in": "body",
+          "type": "array",
+          "required": true,
+          "description": "Array of object."
+        },
+        {
+          "name": "stream",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": "Defaults to false."
+        },
+        {
+          "name": "temperature",
+          "in": "body",
+          "type": "number",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "max_tokens",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "tools",
+          "in": "body",
+          "type": "array",
+          "required": false,
+          "description": "Array of object."
+        },
+        {
+          "name": "tool_choice",
+          "in": "body",
+          "type": "any",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "thread_id",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Optional caller-supplied conversation identifier. Persisted on the InferenceLog so subsequent logs in the same conversation can be grouped together without inferring the relationship from message content."
+        }
+      ]
+    },
+    {
+      "id": "models.complete",
+      "aliases": [
+        "models.completions"
+      ],
+      "category": "models",
+      "group": "models",
+      "provider": "TinyHumans inference gateway",
+      "summary": "Create a text completion",
+      "route": "POST /openai/v1/completions",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "model",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "prompt",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "stream",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": "Defaults to false."
+        },
+        {
+          "name": "temperature",
+          "in": "body",
+          "type": "number",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "max_tokens",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "thread_id",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Optional caller-supplied conversation identifier. Persisted on the InferenceLog so subsequent logs in the same conversation can be grouped together."
+        }
+      ]
+    },
+    {
+      "id": "models.embed",
+      "aliases": [
+        "models.embeddings"
+      ],
+      "category": "models",
+      "group": "models",
+      "provider": "TinyHumans inference gateway",
+      "summary": "Create text embeddings via Voyage AI",
+      "route": "POST /openai/v1/embeddings",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "model",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "One of: embedding-v1, embedding-code-v1."
+        },
+        {
+          "name": "input",
+          "in": "body",
+          "type": "any",
+          "required": true,
+          "description": "A string or array of strings to embed."
+        },
+        {
+          "name": "dimensions",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": "One of: 256, 512, 1024, 2048. Defaults to 1024."
+        },
+        {
+          "name": "input_type",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Optional retrieval-quality hint for Voyage. One of: query, document."
+        }
+      ]
+    },
+    {
+      "id": "models.list",
+      "aliases": [
+        "models"
+      ],
+      "category": "models",
+      "group": "models",
+      "provider": "TinyHumans inference gateway",
+      "summary": "List available models (subscription inference budget can be used with any listed model)",
+      "route": "GET /openai/v1/models",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "with_display",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "If 1 or true, include display_name and provider per model for UI One of: 1, true."
+        },
+        {
+          "name": "catalog",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Opt-in richer listing. Omit for the default curated payload (unchanged). 'openrouter' lists passthrough models, 'all' lists both. Enables the filter/pagination params below and returns { object, data, total, limit, offset } with pricing as charged (per 1M tokens). One of: curated, openrouter, all."
+        },
+        {
+          "name": "search",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Case-insensitive match on id/display_name (catalog listing only)"
+        },
+        {
+          "name": "modality",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Require an input modality, e.g. 'image' (catalog listing only)"
+        },
+        {
+          "name": "tools",
+          "in": "query",
+          "type": "boolean",
+          "required": false,
+          "description": "Require tool-call support (catalog listing only)"
+        },
+        {
+          "name": "max_output_price",
+          "in": "query",
+          "type": "number",
+          "required": false,
+          "description": "Max charged output price per 1M tokens (catalog listing only)"
+        },
+        {
+          "name": "author",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Filter by author/provider, e.g. 'anthropic' (catalog listing only)"
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": "Page size, default 100, max 500 (catalog listing only)"
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": "Page offset, default 0 (catalog listing only)"
+        }
+      ]
+    },
+    {
+      "id": "models.speak",
+      "aliases": [
+        "models.audio.speech"
+      ],
+      "category": "models",
+      "group": "models",
+      "provider": "TinyHumans inference gateway",
+      "summary": "Synthesize speech from text via ElevenLabs (mp3)",
+      "route": "POST /openai/v1/audio/speech",
+      "auth": "Required",
+      "response": "Binary",
+      "params": [
+        {
+          "name": "text",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "voice_id",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Voice id. Defaults to ELEVENLABS_DEFAULT_VOICE_ID."
+        },
+        {
+          "name": "model_id",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Stable, provider-agnostic TTS model id. Mapped to the underlying upstream model internally. One of: tts-v1. Defaults to \"tts-v1\"."
+        },
+        {
+          "name": "output_format",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "ElevenLabs output format (e.g. mp3_44100_128)."
+        },
+        {
+          "name": "with_visemes",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": "When true, returns JSON containing base64 audio plus a viseme timeline (Oculus 15-viseme set) and the raw character-level alignment from ElevenLabs. When false (or unset), the response is raw audio bytes."
+        }
+      ]
+    },
+    {
+      "id": "models.transcribe",
+      "aliases": [
+        "models.audio.transcriptions"
+      ],
+      "category": "models",
+      "group": "models",
+      "provider": "TinyHumans inference gateway",
+      "summary": "Transcribe audio to text",
+      "route": "POST /openai/v1/audio/transcriptions",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "file",
+          "in": "body",
+          "type": "file",
+          "required": true,
+          "description": "Path to a local file to upload."
+        },
+        {
+          "name": "model",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "`stt-v1` (ElevenLabs Scribe) is the default and is billed at a fixed 30% margin on top of ELEVENLABS_STT_USD_PER_HOUR. `whisper-v1` (GMI Whisper) is billed per-minute via the integration registry with the user's tier-based margin. One of: stt-v1, whisper-v1. Defaults to \"stt-v1\"."
+        },
+        {
+          "name": "language",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "ISO-639-1 language hint (e.g. \"en\"). Auto-detected when omitted."
+        },
+        {
+          "name": "response_format",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "One of: json, text, srt, verbose_json, vtt. Defaults to \"json\"."
+        },
+        {
+          "name": "temperature",
+          "in": "body",
+          "type": "number",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "vad_model",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "diarize",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "timestamp_granularities",
+          "in": "body",
+          "type": "array",
+          "required": false,
+          "description": "Array of string."
+        }
+      ]
+    },
+    {
+      "id": "opencompany.instances.create",
+      "aliases": [],
+      "category": "agents",
+      "group": "opencompany",
+      "provider": "OpenCompany",
+      "summary": "Provision a new hosted OpenCompany instance",
+      "route": "POST /opencompany/instances",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "slug",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "company",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "opencompany.instances.custom_domain.delete",
+      "aliases": [],
+      "category": "agents",
+      "group": "opencompany",
+      "provider": "OpenCompany",
+      "summary": "Detach the custom domain from an instance",
+      "route": "DELETE /opencompany/instances/{slug}/custom-domain",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "slug",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "opencompany.instances.custom_domain.replace",
+      "aliases": [],
+      "category": "agents",
+      "group": "opencompany",
+      "provider": "OpenCompany",
+      "summary": "Attach (or replace) a custom domain on an instance",
+      "route": "PUT /opencompany/instances/{slug}/custom-domain",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "slug",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "domain",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "opencompany.instances.custom_domain.verify",
+      "aliases": [],
+      "category": "agents",
+      "group": "opencompany",
+      "provider": "OpenCompany",
+      "summary": "Re-run DNS verification for the attached custom domain",
+      "route": "POST /opencompany/instances/{slug}/custom-domain/verify",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "slug",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "opencompany.instances.delete",
+      "aliases": [],
+      "category": "agents",
+      "group": "opencompany",
+      "provider": "OpenCompany",
+      "summary": "Delete an instance",
+      "route": "DELETE /opencompany/instances/{slug}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "slug",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "purge_data",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "One of: true, false."
+        }
+      ]
+    },
+    {
+      "id": "opencompany.instances.list",
+      "aliases": [],
+      "category": "agents",
+      "group": "opencompany",
+      "provider": "OpenCompany",
+      "summary": "List the active team's hosted OpenCompany instances",
+      "route": "GET /opencompany/instances",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "opencompany.instances.resume",
+      "aliases": [],
+      "category": "agents",
+      "group": "opencompany",
+      "provider": "OpenCompany",
+      "summary": "Reactivate a suspended instance and start its workload",
+      "route": "POST /opencompany/instances/{slug}/resume",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "slug",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "opencompany.instances.suspend",
+      "aliases": [],
+      "category": "agents",
+      "group": "opencompany",
+      "provider": "OpenCompany",
+      "summary": "Suspend an instance (stops its workload, keeps its data)",
+      "route": "POST /opencompany/instances/{slug}/suspend",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "slug",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "orchestration.events",
+      "aliases": [],
+      "category": "agents",
+      "group": "orchestration",
+      "provider": "TinyHumans orchestration",
+      "summary": "Ingest an orchestration event (wake trigger)",
+      "route": "POST /orchestration/v1/events",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "protocol",
+          "in": "body",
+          "type": "integer",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "counterpart_agent_id",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "session_id",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "event",
+          "in": "body",
+          "type": "object",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "orchestration.run",
+      "aliases": [],
+      "category": "agents",
+      "group": "orchestration",
+      "provider": "TinyHumans orchestration",
+      "summary": "Run one orchestration cycle",
+      "route": "POST /orchestration/v1/run",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "input",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Raw prompt to orchestrate over"
+        },
+        {
+          "name": "session_id",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Optional session to continue"
+        },
+        {
+          "name": "flavor",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Hosted flavor for this run. Omit for the default (tui). An unknown value is rejected with 400. Selecting openhuman requires a registered device counterpart (the orch:register_tools handshake completed); otherwise 403 (errorCode FORBIDDEN), never a silent downgrade. All flavors bill at the same opaque SKU — flavor never affects pricing. One of: tui, openhuman."
+        },
+        {
+          "name": "tools",
+          "in": "body",
+          "type": "array",
+          "required": false,
+          "description": "Caller-defined tools resolved via the client tool-call loop Array of object."
+        },
+        {
+          "name": "options",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Per-request tuning (promptOverrides, config, limits, workspaceProfiles)"
+        }
+      ]
+    },
+    {
+      "id": "orchestration.run.continue",
+      "aliases": [],
+      "category": "agents",
+      "group": "orchestration",
+      "provider": "TinyHumans orchestration",
+      "summary": "Resume a tool-loop cycle with caller tool results",
+      "route": "POST /orchestration/v1/run/continue",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "cycle_id",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "tool_results",
+          "in": "body",
+          "type": "array",
+          "required": false,
+          "description": "Array of object."
+        }
+      ]
+    },
+    {
+      "id": "orchestration.sessions",
+      "aliases": [],
+      "category": "agents",
+      "group": "orchestration",
+      "provider": "TinyHumans orchestration",
+      "summary": "List the caller's orchestration sessions",
+      "route": "GET /orchestration/v1/sessions",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "orchestration.sessions.messages",
+      "aliases": [],
+      "category": "agents",
+      "group": "orchestration",
+      "provider": "TinyHumans orchestration",
+      "summary": "Ordered messages for a session (optionally after a seq cursor)",
+      "route": "GET /orchestration/v1/sessions/{id}/messages",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "after",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "orchestration.sessions.state",
+      "aliases": [],
+      "category": "agents",
+      "group": "orchestration",
+      "provider": "TinyHumans orchestration",
+      "summary": "Cycle/session state for the renderer",
+      "route": "GET /orchestration/v1/sessions/{id}/state",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "orchestration.steering",
+      "aliases": [],
+      "category": "agents",
+      "group": "orchestration",
+      "provider": "TinyHumans orchestration",
+      "summary": "GET /orchestration/v1/steering (undocumented public route)",
+      "route": "GET /orchestration/v1/steering",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "orchestration.world_diff.create",
+      "aliases": [],
+      "category": "agents",
+      "group": "orchestration",
+      "provider": "TinyHumans orchestration",
+      "summary": "Upload a batch of world-diff entries",
+      "route": "POST /orchestration/v1/world-diff",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "orchestration.world_diff.list",
+      "aliases": [],
+      "category": "agents",
+      "group": "orchestration",
+      "provider": "TinyHumans orchestration",
+      "summary": "World-diff timeline for a session",
+      "route": "GET /orchestration/v1/world-diff",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "session",
+          "in": "query",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "payments.coinbase.charge.create",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Create a Coinbase Commerce charge",
+      "route": "POST /payments/coinbase/charge",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "plan",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Subscription plan (BASIC: $10/month, PRO: $25/month) One of: BASIC, PRO."
+        },
+        {
+          "name": "interval",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Billing interval (crypto payments are annual-only) One of: annual."
+        },
+        {
+          "name": "metadata",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Optional metadata"
+        }
+      ]
+    },
+    {
+      "id": "payments.coinbase.charge.get",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Get charge status",
+      "route": "GET /payments/coinbase/charge/{gatewayTransactionId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "gateway_transaction_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "Payment gateway transaction ID (e.g., Coinbase charge UUID)"
+        },
+        {
+          "name": "sync",
+          "in": "query",
+          "type": "boolean",
+          "required": false,
+          "description": "Whether to sync with Coinbase Commerce for latest status Defaults to false."
+        }
+      ]
+    },
+    {
+      "id": "payments.credits.auto_recharge.cards.delete",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Delete a saved Stripe card for auto recharge",
+      "route": "DELETE /payments/credits/auto-recharge/cards/{paymentMethodId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "payment_method_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "payments.credits.auto_recharge.cards.list",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "List saved Stripe cards for auto recharge",
+      "route": "GET /payments/credits/auto-recharge/cards",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "payments.credits.auto_recharge.cards.setup_intent",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Create a Stripe SetupIntent for adding a saved card",
+      "route": "POST /payments/credits/auto-recharge/cards/setup-intent",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "payments.credits.auto_recharge.cards.update",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Update a saved Stripe card for auto recharge",
+      "route": "PATCH /payments/credits/auto-recharge/cards/{paymentMethodId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "payment_method_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "payments.credits.auto_recharge.list",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Get Stripe auto-recharge settings for top-up credits",
+      "route": "GET /payments/credits/auto-recharge",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "payments.credits.auto_recharge.update",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Update Stripe auto-recharge settings for top-up credits",
+      "route": "PATCH /payments/credits/auto-recharge",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "enabled",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "threshold_usd",
+          "in": "body",
+          "type": "number",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "recharge_amount_usd",
+          "in": "body",
+          "type": "number",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "payments.credits.top_up",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Create a credit top-up payment",
+      "route": "POST /payments/credits/top-up",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "amount_usd",
+          "in": "body",
+          "type": "number",
+          "required": true,
+          "description": "Amount in USD to add as credits (capped by MAX_TOPUP_USD)"
+        },
+        {
+          "name": "gateway",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Payment gateway to use One of: stripe, coinbase. Defaults to \"stripe\"."
+        }
+      ]
+    },
+    {
+      "id": "payments.credits.top_up.cancel",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Handle canceled credit top-up (callback)",
+      "route": "GET /payments/credits/top-up/cancel",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "payments.credits.top_up.success",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Handle successful credit top-up (callback)",
+      "route": "GET /payments/credits/top-up/success",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "session_id",
+          "in": "query",
+          "type": "string",
+          "required": true,
+          "description": "Stripe checkout session ID"
+        }
+      ]
+    },
+    {
+      "id": "payments.credits.transactions",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Get paginated credit transaction history",
+      "route": "GET /payments/credits/transactions",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "limit",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": "Defaults to 20."
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": "Defaults to 0."
+        }
+      ]
+    },
+    {
+      "id": "payments.stripe.checkout.return",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Public Stripe Checkout redirect target (browser hand-off)",
+      "route": "GET /payments/stripe/checkout/return",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "session_id",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Stripe Checkout session id (omitted on cancel)"
+        },
+        {
+          "name": "status",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Present and set to \"cancel\" when the user abandoned checkout One of: cancel."
+        }
+      ]
+    },
+    {
+      "id": "payments.stripe.current_plan",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Get current subscription plan for authenticated user",
+      "route": "GET /payments/stripe/currentPlan",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "payments.stripe.plans",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Get all available subscription plans",
+      "route": "GET /payments/stripe/plans",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "payments.stripe.portal",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Create a Stripe Customer Portal session",
+      "route": "POST /payments/stripe/portal",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "payments.stripe.portal.return",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Stripe Customer Portal return page",
+      "route": "GET /payments/stripe/portal/return",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "payments.stripe.purchase_plan",
+      "aliases": [],
+      "category": "account",
+      "group": "payments",
+      "provider": "TinyHumans",
+      "summary": "Create a Stripe Checkout Session for subscription purchase",
+      "route": "POST /payments/stripe/purchasePlan",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "plan",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Subscription plan identifier One of: BASIC_MONTHLY, BASIC_YEARLY, PRO_MONTHLY, PRO_YEARLY."
+        },
+        {
+          "name": "coupon_code",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Optional promotion code (case-insensitive). If the code is unknown, inactive, expired, exhausted, or rejected by Stripe (e.g. a `first-time customer only` restriction that does not match this customer), the request fails with 400 / errorCode `PROMO_CODE_INVALID` so the client can surface the rejection. Previously these were silently ignored and the session was created at full price (see #3899)."
+        }
+      ]
+    },
+    {
+      "id": "places.details",
+      "aliases": [],
+      "category": "data",
+      "group": "places",
+      "provider": "Google Places",
+      "summary": "Get place details via Google Places API",
+      "route": "POST /agent-integrations/google-places/details",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "place_id",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Google Places place ID"
+        }
+      ]
+    },
+    {
+      "id": "places.search",
+      "aliases": [],
+      "category": "search",
+      "group": "places",
+      "provider": "Google Places",
+      "summary": "Search places via Google Places API",
+      "route": "POST /agent-integrations/google-places/search",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "query",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Text query used to search for places"
+        },
+        {
+          "name": "max_results",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum number of places to return"
+        }
+      ]
+    },
+    {
+      "id": "pricing.list",
+      "aliases": [
+        "pricing"
+      ],
+      "category": "account",
+      "group": "pricing",
+      "provider": "TinyHumans",
+      "summary": "Get plan-aware pricing for all agent integrations",
+      "route": "GET /agent-integrations/pricing",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "referral.claim",
+      "aliases": [],
+      "category": "account",
+      "group": "referral",
+      "provider": "TinyHumans",
+      "summary": "Claim a referral link for the authenticated user",
+      "route": "POST /referral/claim",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "code",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Referral code extracted from the referral link"
+        },
+        {
+          "name": "device_fingerprint",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Optional device fingerprint for abuse prevention"
+        }
+      ]
+    },
+    {
+      "id": "referral.stats",
+      "aliases": [],
+      "category": "account",
+      "group": "referral",
+      "provider": "TinyHumans",
+      "summary": "Fetch referral link, earnings summary, and referral list",
+      "route": "GET /referral/stats",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "research.dataset.create",
+      "aliases": [],
+      "category": "research",
+      "group": "research",
+      "provider": "Parallel AI",
+      "summary": "Generate a web dataset via Parallel FindAll",
+      "route": "POST /agent-integrations/parallel/dataset",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "objective",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "entity_type",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "match_conditions",
+          "in": "body",
+          "type": "array",
+          "required": true,
+          "description": "Array of object."
+        },
+        {
+          "name": "generator",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Defaults to \"base\" One of: preview, base, core, pro."
+        },
+        {
+          "name": "match_limit",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "metadata",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "research.dataset.get",
+      "aliases": [],
+      "category": "research",
+      "group": "research",
+      "provider": "Parallel AI",
+      "summary": "Get dataset (FindAll) run status",
+      "route": "GET /agent-integrations/parallel/dataset/{findallId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "findall_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "research.dataset.result",
+      "aliases": [],
+      "category": "research",
+      "group": "research",
+      "provider": "Parallel AI",
+      "summary": "Get dataset (FindAll) matched candidates snapshot",
+      "route": "GET /agent-integrations/parallel/dataset/{findallId}/result",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "findall_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "research.enrich",
+      "aliases": [],
+      "category": "research",
+      "group": "research",
+      "provider": "Parallel AI",
+      "summary": "Enrich web data with a structured output schema (synchronous)",
+      "route": "POST /agent-integrations/parallel/enrich",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "input",
+          "in": "body",
+          "type": "any",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "processor",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "One of: lite, base, core, ultra."
+        },
+        {
+          "name": "output_schema",
+          "in": "body",
+          "type": "object",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "input_schema",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "metadata",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "timeout_seconds",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "research.result",
+      "aliases": [],
+      "category": "research",
+      "group": "research",
+      "provider": "Parallel AI",
+      "summary": "Block on a deep research run until completion",
+      "route": "GET /agent-integrations/parallel/research/{runId}/result",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "run_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "timeout_seconds",
+          "in": "query",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "research.start",
+      "aliases": [
+        "research.create"
+      ],
+      "category": "research",
+      "group": "research",
+      "provider": "Parallel AI",
+      "summary": "Start a deep research task (Parallel Task API)",
+      "route": "POST /agent-integrations/parallel/research",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "input",
+          "in": "body",
+          "type": "any",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "processor",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "One of: lite, base, core, ultra."
+        },
+        {
+          "name": "output_schema",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "JSON schema for structured output"
+        },
+        {
+          "name": "input_schema",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "metadata",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "wait",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": "Block until the run completes (up to timeoutSeconds)"
+        },
+        {
+          "name": "timeout_seconds",
+          "in": "body",
+          "type": "integer",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "research.status",
+      "aliases": [
+        "research.get"
+      ],
+      "category": "research",
+      "group": "research",
+      "provider": "Parallel AI",
+      "summary": "Get deep research run status",
+      "route": "GET /agent-integrations/parallel/research/{runId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "run_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "rewards.claim",
+      "aliases": [],
+      "category": "account",
+      "group": "rewards",
+      "provider": "TinyHumans",
+      "summary": "Claim a single unlocked (or active recurring) reward's token credit",
+      "route": "POST /rewards/claim",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "reward_type",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "The reward/achievement identifier to claim."
+        }
+      ]
+    },
+    {
+      "id": "rewards.discord",
+      "aliases": [],
+      "category": "account",
+      "group": "rewards",
+      "provider": "TinyHumans",
+      "summary": "Disconnect (unlink) the authenticated user's Discord account",
+      "route": "DELETE /rewards/discord",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "rewards.me",
+      "aliases": [],
+      "category": "account",
+      "group": "rewards",
+      "provider": "TinyHumans",
+      "summary": "Get the authenticated user's backend-backed rewards snapshot",
+      "route": "GET /rewards/me",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "search.agentic",
+      "aliases": [
+        "browse.search"
+      ],
+      "category": "search",
+      "group": "browse",
+      "provider": "TinyFish",
+      "summary": "Search request forwarded to TinyFish verbatim.",
+      "route": "POST /agent-integrations/tinyfish/search",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "search.chat",
+      "aliases": [
+        "research.chat"
+      ],
+      "category": "search",
+      "group": "research",
+      "provider": "Parallel AI",
+      "summary": "Chat with the web via Parallel Chat Completions",
+      "route": "POST /agent-integrations/parallel/chat",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "model",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "One of: speed, lite, base, core."
+        },
+        {
+          "name": "messages",
+          "in": "body",
+          "type": "array",
+          "required": true,
+          "description": "Array of object."
+        },
+        {
+          "name": "response_format",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "search.extract",
+      "aliases": [
+        "research.extract"
+      ],
+      "category": "search",
+      "group": "research",
+      "provider": "Parallel AI",
+      "summary": "Extract content from URLs via Parallel API",
+      "route": "POST /agent-integrations/parallel/extract",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "urls",
+          "in": "body",
+          "type": "array",
+          "required": true,
+          "description": "Array of string."
+        },
+        {
+          "name": "objective",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "full_content",
+          "in": "body",
+          "type": "boolean",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "search.fetch",
+      "aliases": [
+        "browse.fetch"
+      ],
+      "category": "search",
+      "group": "browse",
+      "provider": "TinyFish",
+      "summary": "Fetch request forwarded to TinyFish verbatim.",
+      "route": "POST /agent-integrations/tinyfish/fetch",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "search.web",
+      "aliases": [
+        "research.search"
+      ],
+      "category": "search",
+      "group": "research",
+      "provider": "Parallel AI",
+      "summary": "Web search (provider configurable via WEB_SEARCH_PROVIDER; defaults to Exa)",
+      "route": "POST /agent-integrations/parallel/search",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "objective",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "search_queries",
+          "in": "body",
+          "type": "array",
+          "required": true,
+          "description": "Array of string."
+        },
+        {
+          "name": "mode",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "One of: one-shot, agentic, fast."
+        }
+      ]
+    },
+    {
+      "id": "teams.billing.plan",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "Get the team's current subscription plan",
+      "route": "GET /teams/{teamId}/billing/plan",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "teams.billing.portal",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "Create a Stripe billing portal session for the team",
+      "route": "POST /teams/{teamId}/billing/portal",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "return_url",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "URL to return to after portal session"
+        }
+      ]
+    },
+    {
+      "id": "teams.billing.purchase",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "Purchase a subscription plan for the team",
+      "route": "POST /teams/{teamId}/billing/purchase",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "plan",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "One of: BASIC_MONTHLY, BASIC_YEARLY, PRO_MONTHLY, PRO_YEARLY."
+        },
+        {
+          "name": "success_url",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "cancel_url",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "teams.get",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "Get team details",
+      "route": "GET /teams/{teamId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "Team ID"
+        }
+      ]
+    },
+    {
+      "id": "teams.invites.create",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "Create a team invite",
+      "route": "POST /teams/{teamId}/invites",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "max_uses",
+          "in": "body",
+          "type": "number",
+          "required": false,
+          "description": "Defaults to 1."
+        },
+        {
+          "name": "expires_in_days",
+          "in": "body",
+          "type": "number",
+          "required": false,
+          "description": "Defaults to 7."
+        }
+      ]
+    },
+    {
+      "id": "teams.invites.delete",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "Revoke a team invite",
+      "route": "DELETE /teams/{teamId}/invites/{inviteId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "invite_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "teams.invites.email",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "Send a team invite via email",
+      "route": "POST /teams/{teamId}/invites/email",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "Team ID"
+        },
+        {
+          "name": "email",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "teams.invites.list",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "List team invites",
+      "route": "GET /teams/{teamId}/invites",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "teams.join",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "Join a team using an invite code",
+      "route": "POST /teams/join",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "code",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Team invite code"
+        }
+      ]
+    },
+    {
+      "id": "teams.leave",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "Leave a team",
+      "route": "POST /teams/{teamId}/leave",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "teams.list",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "List all teams the user belongs to",
+      "route": "GET /teams",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "teams.me.usage",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "Get usage and spend insights for the authenticated user",
+      "route": "GET /teams/me/usage",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "teams.members.delete",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "DELETE /teams/{teamId}/members/{userId} (undocumented public route)",
+      "route": "DELETE /teams/{teamId}/members/{userId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "The teamId path segment."
+        },
+        {
+          "name": "user_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "The userId path segment."
+        }
+      ]
+    },
+    {
+      "id": "teams.members.list",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "List team members",
+      "route": "GET /teams/{teamId}/members",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "teams.members.role",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "PUT /teams/{teamId}/members/{userId}/role (undocumented public route)",
+      "route": "PUT /teams/{teamId}/members/{userId}/role",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "The teamId path segment."
+        },
+        {
+          "name": "user_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "The userId path segment."
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "teams.replace",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "PUT /teams/{teamId} (undocumented public route)",
+      "route": "PUT /teams/{teamId}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "The teamId path segment."
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "teams.switch",
+      "aliases": [],
+      "category": "account",
+      "group": "teams",
+      "provider": "TinyHumans",
+      "summary": "Switch the user's active team",
+      "route": "POST /teams/{teamId}/switch",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "team_id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "tools.execute",
+      "aliases": [
+        "composio.execute"
+      ],
+      "category": "automation",
+      "group": "composio",
+      "provider": "Composio",
+      "summary": "Execute a Composio tool on behalf of the user",
+      "route": "POST /agent-integrations/composio/execute",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "tool",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": "Tool slug (e.g. `GMAIL_SEND_EMAIL`)"
+        },
+        {
+          "name": "arguments",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "connection_id",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": "Optional Composio connected account id to target when the user has multiple accounts for the toolkit."
+        }
+      ]
+    },
+    {
+      "id": "tools.list",
+      "aliases": [
+        "composio.tools"
+      ],
+      "category": "automation",
+      "group": "composio",
+      "provider": "Composio",
+      "summary": "List Composio tools as OpenAI function-call schemas",
+      "route": "GET /agent-integrations/composio/tools",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "toolkits",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Comma-separated list of toolkit slugs (e.g. `gmail,notion`)"
+        },
+        {
+          "name": "tags",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Comma-separated list of Composio catalog tags (e.g. `repos,important`). Examples: `readOnlyHint`, `updateHint`, `destructiveHint`, `repos`, `pulls`, `issues`, `Repository Management`."
+        }
+      ]
+    },
+    {
+      "id": "tools.toolkits",
+      "aliases": [
+        "composio.toolkits"
+      ],
+      "category": "automation",
+      "group": "composio",
+      "provider": "Composio",
+      "summary": "List Composio toolkits available to users",
+      "route": "GET /agent-integrations/composio/toolkits",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "voice.call",
+      "aliases": [],
+      "category": "messaging",
+      "group": "voice",
+      "provider": "Twilio",
+      "summary": "Make a call via Twilio",
+      "route": "POST /agent-integrations/twilio/call",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "to",
+          "in": "body",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "message",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "twiml",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "url",
+          "in": "body",
+          "type": "string",
+          "required": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "webhooks.core.bandwidth",
+      "aliases": [],
+      "category": "automation",
+      "group": "webhooks",
+      "provider": "TinyHumans",
+      "summary": "GET /webhooks/core/bandwidth (undocumented public route)",
+      "route": "GET /webhooks/core/bandwidth",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "webhooks.core.create",
+      "aliases": [],
+      "category": "automation",
+      "group": "webhooks",
+      "provider": "TinyHumans",
+      "summary": "POST /webhooks/core (undocumented public route)",
+      "route": "POST /webhooks/core",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    },
+    {
+      "id": "webhooks.core.delete",
+      "aliases": [],
+      "category": "automation",
+      "group": "webhooks",
+      "provider": "TinyHumans",
+      "summary": "DELETE /webhooks/core/{id} (undocumented public route)",
+      "route": "DELETE /webhooks/core/{id}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "The id path segment."
+        }
+      ]
+    },
+    {
+      "id": "webhooks.core.get",
+      "aliases": [],
+      "category": "automation",
+      "group": "webhooks",
+      "provider": "TinyHumans",
+      "summary": "GET /webhooks/core/{id} (undocumented public route)",
+      "route": "GET /webhooks/core/{id}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "The id path segment."
+        }
+      ]
+    },
+    {
+      "id": "webhooks.core.list",
+      "aliases": [],
+      "category": "automation",
+      "group": "webhooks",
+      "provider": "TinyHumans",
+      "summary": "GET /webhooks/core (undocumented public route)",
+      "route": "GET /webhooks/core",
+      "auth": "Required",
+      "response": "Json",
+      "params": []
+    },
+    {
+      "id": "webhooks.core.update",
+      "aliases": [],
+      "category": "automation",
+      "group": "webhooks",
+      "provider": "TinyHumans",
+      "summary": "PATCH /webhooks/core/{id} (undocumented public route)",
+      "route": "PATCH /webhooks/core/{id}",
+      "auth": "Required",
+      "response": "Json",
+      "params": [
+        {
+          "name": "id",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "The id path segment."
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "type": "object",
+          "required": false,
+          "description": "Raw JSON request body, forwarded to the backend as-is."
+        }
+      ]
+    }
+  ]
+}

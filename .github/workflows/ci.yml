@@ -62,6 +62,26 @@ jobs:
           path: coverage.json
           if-no-files-found: ignore
 
+  catalog:
+    name: Capability catalog
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          submodules: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Checked against the committed contract snapshot in `api/`, never
+      # against the live backend: a deployment must not be able to turn an
+      # unrelated pull request red. Refreshing the snapshot is a deliberate
+      # `--fetch` commit.
+      - name: Check the generated catalog is in sync
+        run: node scripts/sync-catalog.mjs --check
+
   docs:
     name: Docs
     runs-on: ubuntu-latest

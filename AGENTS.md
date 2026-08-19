@@ -4,48 +4,74 @@ This file is the single source of truth for how humans and coding agents work
 in this repository. `CLAUDE.md` is a symlink to this file, so every agent reads
 the same instructions.
 
-When you generate a new project from this template, keep this file and adapt
-the project-specific parts (crate name, module map, feature flags, commands).
-Delete guidance that no longer applies rather than leaving it to rot.
+## What This Repository Is
 
-## Template Checklist
+Portal is one agent-friendly door to every provider, search engine, model, and
+agent runtime the TinyHumans backend offers. It wraps the vendored TinyHumans
+SDK in a **capability catalog** — 200-odd operations, each with a stable
+identifier, a category, typed arguments, and documentation taken from the
+deployed OpenAPI contract — and serves that one catalog through four surfaces:
+a Rust library, a CLI, an MCP server, and an Agent Skill.
 
-Do this once, in a single commit, before writing feature code:
-
-- [ ] Set `name`, `description`, `repository`, `keywords`, and `categories` in
-      `Cargo.toml`.
-- [ ] Rename the crate references in `README.md`, `src/lib.rs`, `examples/`,
-      and `tests/` (search for `rust_template` and `rust-template`).
-- [ ] Replace the placeholder `greeting` module with the first real feature
-      area, keeping the `mod.rs` / `types.rs` / `test.rs` layout.
-- [ ] Confirm `license` and `LICENSE` match the project's intended license.
-- [ ] Update the security contact in `SECURITY.md`.
-- [ ] Replace `ROADMAP.md` with the real plan, or delete it.
-- [ ] Rename the TinyBus interface, object path, and declared methods in
-      `src/tinybus_module/` while keeping `vendor/tinybus` pinned.
-- [ ] Rewrite the "Project Structure" section below to describe this crate.
+The catalog is the invariant. A change that adds a surface must reuse it; a
+change that adds a capability belongs in the generator, not in hand-written
+Rust.
 
 ## Project Structure
 
-This is a Rust 2024 library crate rooted at `Cargo.toml`.
+This is a Rust 2024 crate with a library and one binary, rooted at
+`Cargo.toml`.
 
 ```text
 src/
 ├── lib.rs              # crate docs + the entire public re-export surface
 ├── error/mod.rs        # crate-wide `Error` and `Result<T>`
-├── tinybus_module/     # TinyBus interface, ABI exports, and integration tests
-└── <feature>/          # one directory per feature area
-    ├── mod.rs          # module docs, wiring, smallest useful public API
-    ├── types.rs        # substantial type definitions
-    └── test.rs         # module-local unit tests
-tests/                  # integration tests against the public API only
+├── config/             # `Settings`: base URL and credentials, read once
+├── catalog/            # the capability table and discovery over it
+│   ├── types.rs        # `Capability`, `Param`, `Category`, and friends
+│   ├── generated.rs    # GENERATED — do not edit; see scripts/sync-catalog.mjs
+│   └── mod.rs          # `find`, `search`, `in_category`, `providers`
+├── invoke/mod.rs       # pure argument validation and request planning
+├── client/mod.rs       # `Portal`: resolve, guard, plan, send
+├── mcp/                # the Model Context Protocol server (`portal mcp`)
+├── cli/                # the `portal` command tree and its rendering
+└── bin/portal.rs       # the binary entry point
+skills/portal/SKILL.md  # the Agent Skill, embedded in the binary
+scripts/
+├── sync-catalog.mjs    # generates the catalog from the backend contract
+└── curation.mjs        # the editorial metadata the generator layers on
+api/
+├── tinyhumans.openapi.json  # pinned public contract snapshot
+└── portal.catalog.json      # the generated catalog, as JSON
+tests/                  # integration tests against the public API and binary
 examples/               # runnable, compiled-in-CI usage examples
-vendor/tinybus/         # pinned TinyBus host types and module SDK
+vendor/sdk/             # pinned TinyHumans SDK submodule
 docs/
 ├── specs/              # behavior and architecture specifications
 ├── plans/              # test-first implementation plans
 └── adr/                # immutable architecture decision records
 ```
+
+### The Catalog Is Generated
+
+`src/catalog/generated.rs` and `api/portal.catalog.json` are written by
+`scripts/sync-catalog.mjs`. Never hand-edit them; CI runs the generator with
+`--check` and fails on drift.
+
+- Route data, parameters, and summaries come from the committed contract
+  snapshot at `api/tinyhumans.openapi.json`.
+- Editorial metadata — capability groups, provider labels, short ids, category
+  corrections — lives in `scripts/curation.mjs`. That is the file to edit when
+  a capability should be named or filed differently.
+- Refresh the snapshot with `node scripts/sync-catalog.mjs --fetch`, in its own
+  commit, so the catalog diff is reviewable.
+- The generator intersects the contract with the SDK's public-route allowlist.
+  Portal must never expose a route the SDK refuses to send; do not work around
+  that by calling `reqwest` directly.
+
+A capability identifier is a public contract. Renaming one is a breaking change
+to every agent and Skill that uses it, not a refactor; `tests/public_api.rs`
+pins the flagship ids for exactly this reason.
 
 Each feature area belongs in a focused module directory under `src/`. A module
 root explains the module, wires its pieces together, and exposes the smallest
@@ -84,6 +110,8 @@ Supporting commands:
 - `cargo fmt --all` — format before committing.
 - `cargo test <filter>` — run a focused subset while iterating.
 - `cargo run --example basic` — run the bundled example.
+- `cargo run --bin portal -- catalog` — drive the CLI from the checkout.
+- `node scripts/sync-catalog.mjs --check` — verify the generated catalog.
 - `cargo doc --no-deps --all-features` — build the rustdoc CI also builds with
   `RUSTDOCFLAGS="-D warnings"`.
 - `cargo test --doc` — run doctests alone when editing documentation examples.
@@ -140,18 +168,20 @@ reproducible.
 
 ### Vendored dependencies
 
-TinyBus is registered as the `vendor/tinybus` git submodule and pinned by its
-gitlink. It supplies the host types and module-side SDK required to build this
-crate's `cdylib`. Initialize it after cloning with:
+The TinyHumans SDK is registered as the `vendor/sdk` git submodule and pinned by
+its gitlink. It owns transport, authentication headers, the response envelope,
+and the public-route allowlist; Portal owns discovery, argument validation, and
+the four surfaces. Initialize it after cloning with:
 
 ```sh
 git submodule update --init --recursive
 ```
 
-Do not edit vendored code from the parent repository. Make TinyBus changes in
-its own repository, push them there, then update this repository's gitlink in a
-separate commit. Keep the exact path dependencies and minimal features unless a
-new module capability requires more.
+Do not edit vendored code from the parent repository. Make SDK changes in its
+own repository, push them there, then update this repository's gitlink in a
+separate commit — and regenerate the catalog in that same commit if the
+allowlist moved. Keep the path dependency and its minimal features unless a new
+capability requires more.
 
 ## Testing
 
@@ -234,9 +264,10 @@ Releases run from `.github/workflows/release.yml` via a manual
 `workflow_dispatch` with a `patch` / `minor` / `major` bump; `current` resumes
 an interrupted release after its version commit and tag exist. The workflow
 re-runs the full validation suite, computes the next version, updates
-`Cargo.toml` and `Cargo.lock`, commits and tags `vX.Y.Z`, builds the TinyBus
-module for every supported platform, pushes, and creates an immutable GitHub
-release with installable native packages.
+`Cargo.toml` and `Cargo.lock`, commits and tags `vX.Y.Z`, builds the `portal`
+binary for every supported platform, pushes, and creates an immutable GitHub
+release with installable packages that carry the binary, the licence, the
+README, and the Agent Skill.
 
 Consequently:
 
@@ -245,8 +276,10 @@ Consequently:
 - Follow semantic versioning. Any change to the public surface that is not
   purely additive is a breaking change and needs a major bump (pre-1.0: a minor
   bump).
-- The module must be packageable for every release target — `main` should
-  always be green.
+- The binary must build and run on every release target — `main` should always
+  be green.
+- The Agent Skill ships inside the release package and is compiled into the
+  binary by `portal skill`; keep it in step with the CLI it describes.
 
 ## Agent Working Agreement
 

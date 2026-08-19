@@ -1,130 +1,167 @@
-# Rust Template
+# Portal
 
-A production-ready Rust 2024 TinyBus module template used by TinyHumans AI. It
-ships the module layout, TinyBus ABI adapter, error handling, testing,
-documentation, CI, and multi-platform release workflow that every new
-integration in this organization starts from.
+One agent-friendly door to every provider, search engine, model, and agent
+runtime the TinyHumans backend offers — as a Rust SDK, a CLI, an MCP server,
+and an Agent Skill.
 
-## Use This Template
+Portal wraps the [TinyHumans SDK](https://github.com/tinyhumansai/sdk), vendored
+at `vendor/sdk`, in a **capability catalog**: 202 backend operations, each with
+a stable identifier, a category, typed arguments, and documentation taken
+straight from the deployed OpenAPI contract. An agent that has never seen this
+API can search the catalog in plain words, read a capability's arguments, and
+invoke it — without knowing a single route.
 
-Choose **Use this template** on GitHub, create a repository, then work through
-the checklist at the top of [`AGENTS.md`](AGENTS.md):
-
-- update the package name, description, repository, keywords, and categories in
-  `Cargo.toml`;
-- update this README and the crate documentation in `src/lib.rs`;
-- replace the placeholder `greeting` module with the first real feature area;
-- rename the TinyBus interface, object path, and exported methods in
-  `src/tinybus_module/`;
-- update the security contact and repository links in the community files;
-- replace `ROADMAP.md` with the real plan, or delete it;
-- change the license if GPL-3.0-only is not appropriate.
-
-Search for `rust-template` and `rust_template` to find every remaining
-template-specific value.
-
-## What You Get
-
-| Area | What is configured |
-| --- | --- |
-| Layout | Directory modules with `mod.rs` / `types.rs` / `test.rs`, a crate-wide error type, integration tests, and a runnable example |
-| Lints | `unsafe_code` forbidden, `missing_docs`, clippy `all` + `pedantic`, no `unwrap`/`expect`/`panic`/`todo` in library code — all declared in `[lints]` so local and CI runs agree |
-| CI | Format, clippy, build, test (default and all features), at least 90% line coverage in every source file, rustdoc with `-D warnings`, an MSRV build, and a `cargo-deny` supply-chain check |
-| Release | Manual `workflow_dispatch` bump that validates, versions, tags, and creates installable native module packages for every supported platform |
-| Community | Issue and pull request templates, Dependabot, contributing, security, support, and code of conduct docs |
-| Agents | [`AGENTS.md`](AGENTS.md) as the single source of truth, symlinked as `CLAUDE.md`, plus a `.claude/settings.json` allowlist for the standard commands |
-| Vendor | TinyBus host types and module SDK pinned as the `vendor/tinybus` build-time submodule |
-
-## Layout
-
-```text
-src/
-├── lib.rs              # crate docs + the entire public re-export surface
-├── error/
-│   ├── mod.rs          # crate-wide `Error` and `Result<T>`
-│   └── test.rs
-├── greeting/           # one directory per feature area
-    ├── mod.rs          # module docs, wiring, smallest useful public API
-    └── test.rs         # module-local unit tests
-└── tinybus_module/
-    ├── mod.rs          # bus interface, setup, and ABI v1 exports
-    └── test.rs         # real in-memory TinyBus integration tests
-tests/
-└── public_api.rs       # integration tests against the public API only
-examples/
-├── basic.rs                    # ordinary library API usage
-├── verify_module.rs            # local dynamic-module verification
-└── verify_github_release.rs    # tagged-release download and bus call
-vendor/
-└── tinybus/            # pinned TinyBus git submodule
-docs/
-├── README.md           # documentation index and conventions
-├── specs/              # behavior and architecture specifications
-├── plans/              # implementation-ordered delivery plans
-└── adr/                # immutable architecture decision records
+```sh
+portal search "transcribe audio"      # find it
+portal describe models.transcribe     # read its arguments
+portal call models.transcribe --arg file=./interview.mp3
 ```
 
-Feature areas use directory modules: implementation and exports live in
-`mod.rs`, substantial types move to `types.rs`, and unit tests live in
-`test.rs`. [`AGENTS.md`](AGENTS.md) holds the complete repository guidance, and
-`CLAUDE.md` is a symlink to it so every coding agent reads one source of truth.
+## Install
+
+```sh
+cargo build --release --bin portal      # target/release/portal
+export TINYHUMANS_API_KEY=...           # or TINYHUMANS_TOKEN=<bearer token>
+portal status
+```
+
+Release builds for Linux, macOS, and Windows are attached to every GitHub
+release, together with the Agent Skill.
+
+## The four surfaces
+
+They are all the same catalog, so they cannot drift apart.
+
+| Surface | Entry point | Use it when |
+| --- | --- | --- |
+| CLI | `portal` | a human or a shell-driven agent is at the keyboard |
+| MCP server | `portal mcp` | an MCP client should discover and call capabilities |
+| Agent Skill | `skills/portal/SKILL.md` | an agent needs to learn Portal in-context |
+| Rust library | `portal::Portal` | another Rust program embeds the whole surface |
+
+### CLI
+
+```sh
+portal catalog                       # the ten categories and their sizes
+portal catalog --category search     # what is in one of them
+portal search "deep research"        # rank the catalog against a question
+portal describe research.start       # arguments, route, and an example call
+
+portal call search.web \
+  --arg objective="who ships the fastest rust http client" \
+  --arg search_queries='["fastest rust http client"]'
+
+portal call media.image --arg prompt="a tiny lighthouse" --dry-run
+portal call files.download --arg file_id=f_123 --out ./report.pdf
+
+portal web "what changed in tokio 1.40"   # shorthand for search.web
+portal chat "explain this stack trace"    # shorthand for models.chat
+portal models                             # shorthand for models.list
+portal raw GET /teams/me/usage            # any public route the catalog misses
+```
+
+Arguments accept either spelling — `search_queries` or `searchQueries`. An
+unknown argument, a missing required one, or a wrong type is rejected locally,
+before any network call, naming the argument at fault.
+
+### MCP server
+
+`portal mcp` speaks line-delimited JSON-RPC on stdio and exposes four tools:
+`portal_search`, `portal_describe`, `portal_invoke`, and `portal_status`. Four
+rather than 202, because a tool definition per capability would crowd out the
+conversation it is meant to serve — the catalog is searched at runtime instead.
+
+```json
+{
+  "mcpServers": {
+    "portal": {
+      "command": "portal",
+      "args": ["mcp"],
+      "env": { "TINYHUMANS_API_KEY": "..." }
+    }
+  }
+}
+```
+
+### Rust library
+
+```rust
+use portal::{catalog, Portal};
+use serde_json::json;
+
+// Discovery needs no credential and no network.
+let web = catalog::find("search.web").expect("the web search capability");
+assert_eq!(web.provider, "Parallel AI");
+
+# async fn run() -> Result<(), portal::Error> {
+let results = Portal::from_env()
+    .invoke("search.web", &json!({
+        "objective": "who ships the fastest rust http client",
+        "search_queries": ["fastest rust http client"],
+    }))
+    .await?;
+# Ok(())
+# }
+```
+
+## What is in the catalog
+
+| Category | Count | What is in it |
+| --- | --- | --- |
+| `search` | 8 | web search, agentic browsing, page fetch, places, gifs |
+| `research` | 7 | deep research runs, web datasets, enrichment |
+| `models` | 6 | chat, completion, embeddings, speech, transcription |
+| `media` | 10 | image and video generation, animated assets |
+| `data` | 14 | market and FX data, place details, calendar, on-chain routes |
+| `automation` | 20 | Composio tools, Apify actors, triggers, webhooks |
+| `files` | 9 | upload, download, share, storage usage |
+| `messaging` | 8 | chat channels and outbound voice calls |
+| `agents` | 43 | Medulla sessions and tasks, orchestration, companies |
+| `account` | 77 | identity, teams, credits, billing, pricing, quotas |
+
+Run `portal catalog` for the live counts, or read
+[`api/portal.catalog.json`](api/portal.catalog.json) for the whole table.
+
+## Configuration
+
+| Variable | Meaning | Default |
+| --- | --- | --- |
+| `TINYHUMANS_API_KEY` | Long-lived API key, sent as `x-api-key` | unset |
+| `TINYHUMANS_TOKEN` | User bearer token, sent as `Authorization` | unset |
+| `TINYHUMANS_BASE_URL` | Backend origin | `https://api.tinyhumans.ai` |
+
+One credential is required for everything except the public health check.
+Credentials are never printed: `portal status` and every debug rendering report
+the credential *kind*, not the secret.
+
+## How the catalog is built
+
+`scripts/sync-catalog.mjs` reads the committed contract snapshot at
+`api/tinyhumans.openapi.json`, intersects it with the vendored SDK's
+public-route allowlist — so Portal can never expose a route the SDK itself
+refuses to send, including every administrative one — and generates
+`src/catalog/generated.rs` and `api/portal.catalog.json`.
+
+```sh
+node scripts/sync-catalog.mjs --fetch    # refresh the snapshot from the backend
+node scripts/sync-catalog.mjs            # regenerate from the snapshot
+node scripts/sync-catalog.mjs --check    # what CI runs
+```
+
+Editorial metadata — which family a route belongs to, which product serves it,
+and the short id an agent types — lives in `scripts/curation.mjs`. Everything
+else comes from the contract.
 
 ## Development
 
-Clone with submodules, or initialize them before building:
-
 ```sh
 git submodule update --init --recursive
-```
 
-```sh
 cargo fmt --all -- --check
 cargo clippy --all-targets --all-features -- -D warnings
 cargo build --all-targets --all-features
 cargo test --all-features
-cargo run --example basic
-cargo build --release --lib            # produces the installable cdylib
 ```
 
-Those four checks are exactly what CI runs. Optional extras:
-
-```sh
-cargo doc --no-deps --all-features   # CI builds this with RUSTDOCFLAGS="-D warnings"
-cargo deny check all                 # supply-chain check; see deny.toml
-cargo install cargo-llvm-cov         # once, before running the coverage gate
-.github/scripts/check-file-coverage.sh 90 target/coverage.json
-```
-
-## Releasing
-
-Run the **Release** workflow from the Actions tab with a `patch`, `minor`, or
-`major` bump. Use `current` only to resume an interrupted release whose version
-commit and tag already exist. The workflow revalidates the crate, versions and
-tags it, builds this crate as a TinyBus `cdylib`, and creates a GitHub release.
-Assets follow `rust-template-<version>-<platform>.<tar.gz|zip>` and contain the
-native module, its SHA-256 `modules.toml`, license, and
-[`MODULE.md`](MODULE.md). Every release also publishes `checksum.toml`, which
-TinyBus uses to verify an archive before extraction. The workflow loads the
-published Ubuntu archive through TinyBus's GitHub release API and calls its
-`Greet` method before declaring the release successful. TinyBus itself is not
-shipped by this repository; the pinned submodule is the build-time SDK. The stable native
-matrix covers Ubuntu 22.04 and 24.04 on x86_64 and ARM64; Fedora 43 and 44 on
-x86_64 and ARM64; rolling Arch Linux on its officially supported x86_64
-architecture; macOS 15 and 26 on Intel and Apple Silicon; Windows Server 2022
-and 2025 on x86_64; and Windows 11 on ARM64. Preview, deprecated, and unofficial
-architecture images are not release gates. Do not hand-edit the version in
-`Cargo.toml`.
-
-## Documentation
-
-- [`AGENTS.md`](AGENTS.md) — repository guidelines for humans and agents
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to propose a change
-- [`docs/specs/`](docs/specs/README.md) — behavior and architecture specs
-- [`docs/plans/`](docs/plans/README.md) — test-first implementation plans
-- [`docs/adr/`](docs/adr/0001-record-architecture-decisions.md) — architecture
-  decision records
-- [`SECURITY.md`](SECURITY.md) — how to report a vulnerability
-
-## License
-
-GPL-3.0-only. See [LICENSE](LICENSE).
+See [`AGENTS.md`](AGENTS.md) for the full working agreement, and
+[`docs/`](docs/) for the specification behind the catalog.
