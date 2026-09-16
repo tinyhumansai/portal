@@ -41,7 +41,7 @@ tinyhumans-sdk = { path = "vendor/sdk", version = "0.1.0", default-features = fa
 # uploads take a `reqwest::multipart::Form`, so those two types cross the
 # boundary. No transport features are enabled here: the SDK owns the client,
 # and Cargo unifies this entry with the one it already builds.
-reqwest = { version = "0.12", default-features = false, features = ["multipart"] }
+reqwest = { version = "0.13", default-features = false, features = ["multipart"] }
 # Derive macros for the crate-wide error type in `src/error/mod.rs`.
 thiserror = "2"
 # Capability arguments, request bodies, and MCP JSON-RPC framing are all JSON.
