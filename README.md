@@ -133,7 +133,12 @@ Run `portal catalog` for the live counts, or read
 One credential is required for everything except the public health check.
 Credentials are never printed: `portal status` and every debug rendering report
 the credential *kind*, not the secret.
+## Features
 
+- Search across 202 backend capabilities
+- CLI, MCP Server, Agent Skill, and Rust SDK support
+- Typed argument validation before API calls
+- Capability discovery through natural language search
 ## How the catalog is built
 
 `scripts/sync-catalog.mjs` reads the committed contract snapshot at
